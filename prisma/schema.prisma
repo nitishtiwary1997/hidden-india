@@ -1,0 +1,177 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum StoryType {
+  FOLKLORE
+  HISTORY
+  GHOST
+  FACT
+}
+
+enum FoodType {
+  TRADITIONAL
+  STREET
+  SWEET
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String?
+  name         String
+  role         Role      @default(USER)
+  avatarUrl    String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  reviews      Review[]
+  journals     Journal[]
+  bookmarks    Bookmark[]
+  visited      VisitedPlace[]
+}
+
+model State {
+  id               String     @id @default(uuid())
+  name             String     @unique
+  slug             String     @unique
+  overview         String
+  culture          String
+  history          String
+  travelTips       String
+  bestTime         String
+  imageGallery     String[]
+  videos           String[]
+  nearbyAttractions String[]
+  districts        District[]
+}
+
+model District {
+  id                String    @id @default(uuid())
+  stateId           String
+  state             State     @relation(fields: [stateId], references: [id], onDelete: Cascade)
+  name              String
+  slug              String
+  overview          String
+  localFestivals    String[]
+  clothing          String
+  music             String
+  emergencyContacts Json      // { police: string, hospital: string, touristHelp: string }
+  transport         Json      // { bus: string, train: string, local: string }
+  weather           String
+  travelCost        String    // Budget estimate (e.g. Budget, Mid-range, Luxury)
+  
+  places            Place[]
+  foods             Food[]
+  stories           Story[]
+
+  @@unique([stateId, slug])
+}
+
+model Place {
+  id               String     @id @default(uuid())
+  districtId       String
+  district         District   @relation(fields: [districtId], references: [id], onDelete: Cascade)
+  name             String
+  slug             String     @unique
+  category         String     // e.g. Waterfall, Temple, Fort, Village, Cave, Lake
+  description      String
+  history          String
+  facts            String[]
+  howToReach       Json       // { air: string, rail: string, road: string }
+  entryFee         String
+  openingTime      String
+  bestTime         String
+  travelTips       String[]
+  carryItems       String[]
+  safetyTips       String[]
+  imageGallery     String[]
+  videos           String[]
+  googleMapUrl     String
+  latitude         Float?
+  longitude        Float?
+
+  reviews          Review[]
+  bookmarks        Bookmark[]
+  visited          VisitedPlace[]
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  placeId    String
+  place      Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating     Int      // 1 to 5
+  content    String
+  isApproved Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model Journal {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  content     String
+  images      String[]
+  visitedDate String
+  createdAt   DateTime @default(now())
+}
+
+model Bookmark {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  placeId   String
+  place     Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, placeId])
+}
+
+model VisitedPlace {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  placeId   String
+  place     Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, placeId])
+}
+
+model Story {
+  id         String    @id @default(uuid())
+  districtId String
+  district   District  @relation(fields: [districtId], references: [id], onDelete: Cascade)
+  title      String
+  slug       String    @unique
+  content    String
+  type       StoryType
+  author     String
+  createdAt  DateTime  @default(now())
+}
+
+model Food {
+  id          String   @id @default(uuid())
+  districtId  String
+  district    District @relation(fields: [districtId], references: [id], onDelete: Cascade)
+  name        String
+  type        FoodType
+  description String
+  recipe      String
+  shops       Json     // List of famous local shops { name: string, location: string, price: string }[]
+  priceRange  String   // e.g. $, $$, $$$
+  images      String[]
+}

@@ -7,9 +7,10 @@ import { useApp } from "@/context/AppContext";
 import { MockDatabase, Place } from "@/lib/mockDatabase";
 import { IndiaMap } from "@/components/IndiaMap";
 import { SEO } from "@/components/SEO";
+import { aiSemanticSearch, searchWithGemini, AISearchResult } from "@/lib/aiSearch";
 import { 
   Search, Sparkles, Compass, Heart, MapPin, Star, 
-  SlidersHorizontal, ArrowRight, CheckSquare, Eye, HelpCircle 
+  SlidersHorizontal, ArrowRight, CheckSquare, Eye, HelpCircle, Settings
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -18,6 +19,19 @@ export default function Home() {
   const { user, bookmarks, toggleBookmark, refreshCounter } = useApp();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Place[]>([]);
+  const [isAiMode, setIsAiMode] = useState(true); // AI Search mode enabled by default
+  const [aiSearchResults, setAiSearchResults] = useState<AISearchResult[]>([]);
+  const [geminiApiKey, setGeminiApiKey] = useState("");
+  const [showKeyModal, setShowKeyModal] = useState(false);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+
+  // Retrieve key on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const key = localStorage.getItem("geminiApiKey") || "";
+      setGeminiApiKey(key);
+    }
+  }, []);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [selectedSeason, setSelectedSeason] = useState<string>("All");
   const [selectedBudget, setSelectedBudget] = useState<string>("All");
@@ -41,33 +55,53 @@ export default function Home() {
 
   // Live multi-faceted search & filter handler
   useEffect(() => {
-    let results = MockDatabase.getPlaces();
-    
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      results = results.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q) ||
-          p.districtName.toLowerCase().includes(q) ||
-          p.description.toLowerCase().includes(q) ||
-          p.stateSlug.toLowerCase().includes(q)
-      );
-    }
+    const runSearch = async () => {
+      if (isAiMode && searchQuery.trim()) {
+        setIsAiLoading(true);
+        try {
+          const aiRes = await searchWithGemini(searchQuery, geminiApiKey);
+          setAiSearchResults(aiRes);
+          setSearchResults(aiRes.map((r) => r.place));
+        } catch (e) {
+          console.error(e);
+        } finally {
+          setIsAiLoading(false);
+        }
+        return;
+      } else {
+        setAiSearchResults([]);
+      }
 
-    if (selectedCategory !== "All") {
-      results = results.filter((p) => p.category === selectedCategory);
-    }
+      let results = MockDatabase.getPlaces();
+      
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        results = results.filter(
+          (p) =>
+            p.name.toLowerCase().includes(q) ||
+            p.category.toLowerCase().includes(q) ||
+            p.districtName.toLowerCase().includes(q) ||
+            p.description.toLowerCase().includes(q) ||
+            p.stateSlug.toLowerCase().includes(q)
+        );
+      }
 
-    if (selectedBudget !== "All") {
-      // Find matching districts for the cost filter
-      const districts = MockDatabase.getDistricts().filter((d) => d.travelCost === selectedBudget);
-      const districtIds = districts.map((d) => d.id);
-      results = results.filter((p) => districtIds.includes(p.districtId));
-    }
+      if (selectedCategory !== "All") {
+        results = results.filter((p) => p.category === selectedCategory);
+      }
 
-    setSearchResults(results);
-  }, [searchQuery, selectedCategory, selectedBudget, refreshCounter]);
+      if (selectedBudget !== "All") {
+        // Find matching districts for the cost filter
+        const districts = MockDatabase.getDistricts().filter((d) => d.travelCost === selectedBudget);
+        const districtIds = districts.map((d) => d.id);
+        results = results.filter((p) => districtIds.includes(p.districtId));
+      }
+
+      setSearchResults(results);
+    };
+
+    runSearch();
+  }, [searchQuery, selectedCategory, selectedBudget, isAiMode, geminiApiKey, refreshCounter]);
 
   const toggleChecklist = (id: number) => {
     setChecklist(
@@ -150,6 +184,31 @@ export default function Home() {
                 />
                 
                 <button
+                  onClick={() => setIsAiMode(!isAiMode)}
+                  className={`p-2.5 rounded-xl transition-all ml-2 flex items-center gap-1.5 text-xs font-bold ${
+                    isAiMode 
+                      ? "bg-gradient-to-r from-teal-600 to-amber-550 text-white shadow-md shadow-teal-550/15" 
+                      : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"
+                  }`}
+                  title="Toggle AI Semantic Search"
+                  type="button"
+                >
+                  <Sparkles className={`w-3.5 h-3.5 ${isAiMode ? "animate-pulse" : ""}`} />
+                  <span className="hidden sm:inline">AI Mode</span>
+                </button>
+
+                {isAiMode && (
+                  <button
+                    onClick={() => setShowKeyModal(true)}
+                    className="p-2.5 rounded-xl text-slate-400 hover:text-primary dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors ml-1"
+                    title="Configure Gemini API Key"
+                    type="button"
+                  >
+                    <Settings className="w-4 h-4" />
+                  </button>
+                )}
+
+                <button
                   onClick={() => setShowFilters(!showFilters)}
                   className={`p-2 rounded-lg transition-colors ml-2 ${
                     showFilters 
@@ -157,6 +216,7 @@ export default function Home() {
                       : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"
                   }`}
                   title="Toggle Advanced Filters"
+                  type="button"
                 >
                   <SlidersHorizontal className="w-4 h-4" />
                 </button>
@@ -253,15 +313,32 @@ export default function Home() {
                 </button>
               </div>
 
-              {searchResults.length > 0 ? (
+              {isAiLoading ? (
+                <div className="flex flex-col items-center justify-center py-16 space-y-4">
+                  <div className="w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm text-slate-500 dark:text-slate-400 font-semibold animate-pulse font-sans">
+                    Gemini AI Model is analyzing query data...
+                  </p>
+                </div>
+              ) : searchResults.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {searchResults.map((place) => (
-                    <PlaceCard key={place.id} place={place} isBookmarked={bookmarks.includes(place.id)} onToggleBookmark={() => toggleBookmark(place.id)} />
-                  ))}
+                  {searchResults.map((place) => {
+                    const aiMatch = aiSearchResults.find((r) => r.place.id === place.id);
+                    return (
+                      <PlaceCard 
+                        key={place.id} 
+                        place={place} 
+                        isBookmarked={bookmarks.includes(place.id)} 
+                        onToggleBookmark={() => toggleBookmark(place.id)}
+                        aiScore={aiMatch?.score}
+                        aiReason={aiMatch?.matchReason}
+                      />
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-12 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800">
-                  <p className="text-slate-500 dark:text-slate-400">No secret gems matched your search filters. Try searching for "waterfall" or "Meghalaya".</p>
+                  <p className="text-slate-500 dark:text-slate-400 font-sans">No secret gems matched your search filters. Try searching for &ldquo;waterfall&rdquo; or &ldquo;Meghalaya&rdquo;.</p>
                 </div>
               )}
             </div>
@@ -414,6 +491,74 @@ export default function Home() {
         </section>
 
       </div>
+
+      {/* Gemini API Key Configuration Modal */}
+      <AnimatePresence>
+        {showKeyModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowKeyModal(false)}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl border border-slate-100 dark:border-slate-800 z-10"
+            >
+              <h3 className="font-poppins font-bold text-xl text-slate-800 dark:text-slate-100 mb-2">
+                Configure Gemini API Key
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 font-sans leading-relaxed">
+                Unlock real Google Gemini AI model matching! Enter your free Gemini API key below (get it from Google AI Studio). The key is stored safely in your local browser storage.
+              </p>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                    Gemini API Key
+                  </label>
+                  <input
+                    type="password"
+                    value={geminiApiKey}
+                    onChange={(e) => setGeminiApiKey(e.target.value)}
+                    placeholder="AIzaSy..."
+                    className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-850 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-xs font-sans"
+                  />
+                </div>
+
+                <div className="flex gap-2 justify-end pt-2">
+                  <button
+                    onClick={() => {
+                      localStorage.removeItem("geminiApiKey");
+                      setGeminiApiKey("");
+                      setShowKeyModal(false);
+                    }}
+                    className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+                    type="button"
+                  >
+                    Clear Key
+                  </button>
+                  <button
+                    onClick={() => {
+                      localStorage.setItem("geminiApiKey", geminiApiKey);
+                      setShowKeyModal(false);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-semibold shadow-md shadow-primary/20"
+                    type="button"
+                  >
+                    Save Key
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
@@ -423,9 +568,13 @@ interface PlaceCardProps {
   place: Place;
   isBookmarked: boolean;
   onToggleBookmark: () => void;
+  aiScore?: number;
+  aiReason?: string;
 }
 
-const PlaceCard: React.FC<PlaceCardProps> = ({ place, isBookmarked, onToggleBookmark }) => {
+const PlaceCard: React.FC<PlaceCardProps> = ({ 
+  place, isBookmarked, onToggleBookmark, aiScore, aiReason 
+}) => {
   return (
     <motion.div
       whileHover={{ y: -6 }}
@@ -441,9 +590,16 @@ const PlaceCard: React.FC<PlaceCardProps> = ({ place, isBookmarked, onToggleBook
         />
         
         {/* Category tag */}
-        <div className="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-semibold bg-white/90 dark:bg-slate-900/90 text-primary dark:text-teal-400 shadow-sm">
+        <div className="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-semibold bg-white/90 dark:bg-slate-900/90 text-primary dark:text-teal-400 shadow-sm z-10">
           {place.category}
         </div>
+
+        {/* AI Score Badge */}
+        {aiScore !== undefined && (
+          <div className="absolute top-4 left-24 px-2.5 py-1 rounded-full text-[9px] font-bold bg-gradient-to-r from-teal-600 to-amber-550 text-white shadow-md shadow-teal-550/15 z-10 animate-pulse-slow">
+            ✨ {aiScore}% AI Match
+          </div>
+        )}
 
         {/* Bookmark Trigger */}
         <button
@@ -451,7 +607,7 @@ const PlaceCard: React.FC<PlaceCardProps> = ({ place, isBookmarked, onToggleBook
             e.preventDefault();
             onToggleBookmark();
           }}
-          className="absolute top-4 right-4 p-2 rounded-full bg-white/90 dark:bg-slate-900/90 text-slate-500 hover:text-red-500 hover:scale-105 active:scale-95 transition-all shadow-sm"
+          className="absolute top-4 right-4 p-2 rounded-full bg-white/90 dark:bg-slate-900/90 text-slate-500 hover:text-red-500 hover:scale-105 active:scale-95 transition-all shadow-sm z-10"
           title={isBookmarked ? "Remove Bookmark" : "Bookmark Place"}
         >
           <Heart className={`w-4 h-4 ${isBookmarked ? "text-red-500 fill-red-500" : ""}`} />
@@ -476,6 +632,13 @@ const PlaceCard: React.FC<PlaceCardProps> = ({ place, isBookmarked, onToggleBook
           <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed">
             {place.description}
           </p>
+
+          {/* AI Matching Reason */}
+          {aiReason && (
+            <div className="mt-2.5 p-2 rounded-xl bg-teal-500/5 border border-teal-500/10 text-[9.5px] text-teal-600 dark:text-teal-450 italic leading-relaxed">
+              🤖 &ldquo;{aiReason}&rdquo;
+            </div>
+          )}
         </div>
 
         {/* Footer info */}

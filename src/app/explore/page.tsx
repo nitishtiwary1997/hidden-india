@@ -1,10 +1,14 @@
 import React from 'react';
 import Link from 'next/link';
 import StateCard from '@/components/cards/StateCard';
-import { featuredStates } from '@/lib/data/mockData';
+import { getStatesData } from '@/lib/db/getData';
 import { Compass, MapPin, Search, Sparkles } from 'lucide-react';
 
-export default function ExplorePage() {
+export const dynamic = 'force-dynamic';
+
+export default async function ExplorePage() {
+  const states = await getStatesData();
+
   return (
     <div className="min-h-screen pb-20 relative">
       <div className="hero-glow" />
@@ -29,7 +33,7 @@ export default function ExplorePage() {
 
         {/* States Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {featuredStates.map((state) => (
+          {states.map((state) => (
             <StateCard key={state.id} state={state} />
           ))}
         </div>

@@ -15,190 +15,63 @@
    - Allow **SSH** (Port 22)
    - Allow **HTTP** (Port 80)
    - Allow **HTTPS** (Port 443)
-7. **Launch Instance** पर क्लिक करें और अपने सर्वर का **Public IP** (उदा. `13.232.100.50`) नोट कर लें।
+7. **Launch Instance** पर क्लिक करें और अपने सर्वर का **Public IP** नोट कर लें।
 
 ---
 
-## 🌐 चरण 2: अपने डोमेन (DNS) को AWS EC2 Public IP से जोड़ें
+## 🔄 भविष्य में कोड अपडेट करके Server पर लाइव करने का 3-Step तरीका (Redeployment Workflow)
 
-Domain Provider के अनुसार नीचे दिए गए स्टेप्स फॉलो करें:
+जब भी आप अपने लैपटॉप पर नया कोड बदलें या नया फ़ीचर जोड़ें, तो सर्वर पर लाइव करने के लिए केवल ये 3 स्टेप्स फॉलो करें:
 
-### 🔹 Option A: GoDaddy में DNS जोड़ने के स्टेप्स
-1. **GoDaddy Account** में लॉगिन करें ➔ **My Products** पर जाएं।
-2. अपने डोमेन नाम के बगल में **DNS** या **Manage DNS** बटन पर क्लिक करें।
-3. **DNS Records** सेक्शन में **Add New Record** बटन पर क्लिक करें।
-4. पहला रिकॉर्ड जोड़ें:
-   - **Type**: `A`
-   - **Name**: `@`
-   - **Value**: `YOUR_EC2_PUBLIC_IP` (उदा. `13.232.100.50`)
-   - **TTL**: `1 Hour` या `Default`
-5. दूसरा रिकॉर्ड जोड़ें:
-   - **Type**: `A`
-   - **Name**: `www`
-   - **Value**: `YOUR_EC2_PUBLIC_IP` (उदा. `13.232.100.50`)
-   - **TTL**: `1 Hour`
-6. **Save All Records** पर क्लिक करें।
-
----
-
-### 🔹 Option B: Hostinger में DNS जोड़ने के स्टेप्स
-1. **Hostinger hPanel** में लॉगिन करें ➔ **Domains** पर जाएं।
-2. अपने डोमेन पर क्लिक करके **DNS / Nameservers** मैन्युअल पर जाएं।
-3. **Manage DNS Records** में जाएं:
-4. पहला A Record:
-   - **Type**: `A` | **Name**: `@` | **Points to**: `YOUR_EC2_PUBLIC_IP` | **TTL**: `3600`
-5. दूसरा A Record:
-   - **Type**: `A` | **Name**: `www` | **Points to**: `YOUR_EC2_PUBLIC_IP` | **TTL**: `3600`
-6. **Add Record** पर क्लिक करके सेव करें।
-
----
-
-## 🛠️ चरण 3: EC2 सर्वर में लॉगिन करके एनवायरनमेंट सेटअप करें
-
-अपने लैपटॉप के टर्मिनल / कमांड प्रॉम्प्ट से SSH के ज़रिए लॉगिन करें:
-
+### 🔹 Step 1: (अपने लैपटॉप पर) कोड Git में Push करें
 ```bash
-# 1. Key file की परमिशन बदलें
-chmod 400 hiddenindia-key.pem
-
-# 2. Server में SSH लॉगिन करें (YOUR_EC2_PUBLIC_IP की जगह अपना सर्वर IP डालें)
-ssh -i hiddenindia-key.pem ubuntu@YOUR_EC2_PUBLIC_IP
-```
-
-सर्वर के अंदर पहुँचने के बाद, **Node.js, Docker, PM2 और Nginx** इंस्टॉल करें:
-
-```bash
-# System Updates
-sudo apt update && sudo apt upgrade -y
-
-# Node.js 22 & Build Tools
-curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-sudo apt install -y nodejs nginx git certbot python3-certbot-nginx
-
-# Install PM2 Process Manager
-sudo npm install -g pm2
-```
-
----
-
-## 📦 चरण 4: Git Code Push, Clone और Production Build (विस्तृत 5 स्टेप्स)
-
-### 🔹 Sub-Step 4.1: (अपने लैपटॉप पर) प्रोजेक्ट को GitHub पर पुश करें
-यदि कोड अभी तक GitHub पर नहीं है, तो अपने लैपटॉप के प्रोजेक्ट फोल्डर में यह चलाएं:
-
-```bash
-git init
 git add .
-git commit -m "Production release of HiddenIndia.online"
-git branch -M main
-git remote add origin https://github.com/YOUR_GITHUB_USERNAME/hidden-india-website.git
-git push -u origin main
+git commit -m "Added new features to website"
+git push origin main
 ```
 
 ---
 
-### 🔹 Sub-Step 4.2: (AWS EC2 सर्वर पर) कोड क्लोन करें
-अब अपने AWS EC2 सर्वर में टर्मिनल पर यह कमांड चलाएं:
-
+### 🔹 Step 2: (AWS EC2 सर्वर पर) कोड Pull करें
+टर्मिनल से EC2 सर्वर में लॉगिन करके यह चलाएं:
 ```bash
-# GitHub से प्रोजेक्ट क्लोन करें
-git clone https://github.com/YOUR_GITHUB_USERNAME/hidden-india-website.git
-
-# प्रोजेक्ट फोल्डर के अंदर जाएं
-cd hidden-india-website
+cd hidden-india
+git pull origin main
 ```
 
 ---
 
-### 🔹 Sub-Step 4.3: Dependencies और Prisma Client इंस्टॉल करें
-
+### 🔹 Step 3: (AWS EC2 सर्वर पर) Rebuild & PM2 Restart करें
 ```bash
-# सभी आवश्यक पैकेज इंस्टॉल करें
-npm install
-
-# Prisma Database Client जनरेट करें
-npx prisma generate
-```
-
----
-
-### 🔹 Sub-Step 4.4: `.env` एनवायरनमेंट फ़ाइल बनाएं
-
-```bash
-# टेंप्लेट फ़ाइल को .env नाम से कॉपी करें
-cp .env.example .env
-
-# फ़ाइल को एडिट करने के लिए खोलें
-nano .env
-```
-
-`nano` एडिटर खुलने पर अपने डेटाबेस URL और सीक्रेट कीज दर्ज करें:
-- एडिट करने के बाद सेव करने के लिए: **`Ctrl + O`** ➔ दबाएं **`Enter`**
-- बाहर निकलने के लिए: **`Ctrl + X`**
-
----
-
-### 🔹 Sub-Step 4.5: Next.js Production Build बनाएं
-
-```bash
-# प्रोजेक्ट की ऑप्टिमाइज्ड प्रॉडक्शन बिल्ड तैयार करें
 npm run build
+pm2 restart hiddenindia
 ```
 
-जब टर्मिनल में `✓ Compiled successfully` और `Generating static pages (18/18)` लिखा आ जाए, तो आपकी बिल्ड 100% तैयार है!
+**बधाई हो!** मात्र 30 सेकंड में बिना किसी डाउनटाइम के आपकी लाइव वेबसाइट अपडेट हो जाएगी! 🚀
 
----
 
-## ⚡ चरण 5: PM2 के साथ ऐप को बैकग्राउंड में स्टार्ट करें
 
-```bash
-# PM2 से App स्टार्ट करें
-pm2 start npm --name "hiddenindia" -- run start
 
-# Auto-restart on server reboot enable करें
-pm2 save
-pm2 startup
-```
 
----
 
-## 🛡️ चरण 6: Nginx Reverse Proxy & Free SSL (HTTPS) कॉन्फ़िगर करें
+/////////////////ab live kerne ke liye mujhe ye follow kerna honga////////////
+भविष्य में जब भी आप अपने लैपटॉप पर कोड में कोई बदलाव करें या नया फ़ीचर जोड़कर सर्वर पर दोबारा लाइव (Re-deploy) करना चाहें, तो आपको केवल यह 3-स्टेप (30 सेकंड) का आसान तरीका फॉलो करना होगा:
 
-### 1. Nginx Config File बनाएं:
-```bash
-sudo nano /etc/nginx/sites-available/hiddenindia
-```
+🔄 Future Redeployment Workflow (केवल 3 स्टेप्स):
+🔹 Step 1: (अपने लैपटॉप के टर्मिनल से) कोड GitHub पर पुश करें
+bash
+git add .
+git commit -m "Added new features to website"
+git push origin main
+🔹 Step 2: (AWS EC2 सर्वर में) नया कोड Pull करें
+अपने AWS EC2 सर्वर में SSH टर्मिनल से लॉगिन करें और यह कमांड चलाएं:
 
-नीचे दिया गया कोड पेस्ट करें (अपने डोमेन नेम से `yourdomain.com` रिप्लेस करें):
+bash
+cd hidden-india
+git pull origin main
+🔹 Step 3: (AWS EC2 सर्वर में) Build बनाकर Restart करें
+bash
+npm run build
+pm2 restart hiddenindia
+🎉 बस हो गया! मात्र 30 सेकंड में बिना किसी डाउनटाइम (Zero Downtime) के आपकी लाइव वेबसाइट पर नए बदलाव और नए फ़ीचर्स तुरंत अपडेट हो जाएंगे! 🚀
 
-```nginx
-server {
-    server_name yourdomain.com www.yourdomain.com;
-
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
-
-### 2. Nginx एक्टिवेट करें:
-```bash
-sudo ln -s /etc/nginx/sites-available/hiddenindia /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl restart nginx
-```
-
-### 3. नि:शुल्क SSL Certificate (HTTPS 🔒) चालू करें:
-```bash
-sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
-```
-
-बधाई हो! आपकी वेबसाइट अब सुरक्षा ताले (SSL 🔒) के साथ अपने डोमेन पर **https://yourdomain.com** पर लाइव हो जाएगी! 🚀

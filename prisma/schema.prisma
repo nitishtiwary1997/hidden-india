@@ -9,128 +9,242 @@ generator client {
 
 enum Role {
   USER
+  EDITOR
   ADMIN
 }
 
-enum StoryType {
-  FOLKLORE
-  HISTORY
-  GHOST
-  FACT
+enum PlaceType {
+  HIDDEN_PLACE
+  TEMPLE
+  WATERFALL
+  HILL_STATION
+  HISTORICAL
+  FOOD_DESTINATION
+  FESTIVAL_LOCATION
+  WILDLIFE_SANCTUARY
+  HERITAGE_SITE
+  BEACH
+  MUSEUM
+  MARKET
 }
 
-enum FoodType {
-  TRADITIONAL
-  STREET
-  SWEET
+enum Difficulty {
+  EASY
+  MODERATE
+  HARD
+  CHALLENGING
+}
+
+enum PriceRange {
+  FREE
+  BUDGET
+  MODERATE
+  LUXURY
 }
 
 model User {
-  id           String    @id @default(uuid())
-  email        String    @unique
-  passwordHash String?
-  name         String
-  role         Role      @default(USER)
-  avatarUrl    String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id            String         @id @default(cuid())
+  name          String?
+  email         String?        @unique
+  emailVerified DateTime?
+  image         String?
+  role          Role           @default(USER)
+  bio           String?
+  city          String?
+  state         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  
+  accounts      Account[]
+  sessions      Session[]
+  reviews       Review[]
+  bookmarks     Bookmark[]
+  stories       TravelStory[]
+}
 
-  reviews      Review[]
-  journals     Journal[]
-  bookmarks    Bookmark[]
-  visited      VisitedPlace[]
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model State {
-  id               String     @id @default(uuid())
-  name             String     @unique
-  slug             String     @unique
-  overview         String
-  culture          String
-  history          String
-  travelTips       String
-  bestTime         String
-  imageGallery     String[]
-  videos           String[]
-  nearbyAttractions String[]
-  districts        District[]
+  id           String     @id @default(cuid())
+  name         String     @unique
+  slug         String     @unique
+  code         String     @unique // e.g. RJ, UP, HP
+  capital      String
+  description  String     @db.Text
+  bannerImage  String
+  mapUrl       String?
+  weatherInfo  String?
+  population   String?
+  language     String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  districts    District[]
+  places       Place[]
+  seoMeta      SeoMeta?
 }
 
 model District {
-  id                String    @id @default(uuid())
-  stateId           String
-  state             State     @relation(fields: [stateId], references: [id], onDelete: Cascade)
-  name              String
-  slug              String
-  overview          String
-  localFestivals    String[]
-  clothing          String
-  music             String
-  emergencyContacts Json      // { police: string, hospital: string, touristHelp: string }
-  transport         Json      // { bus: string, train: string, local: string }
-  weather           String
-  travelCost        String    // Budget estimate (e.g. Budget, Mid-range, Luxury)
-  
-  places            Place[]
-  foods             Food[]
-  stories           Story[]
+  id           String     @id @default(cuid())
+  name         String
+  slug         String     @unique
+  stateId      String
+  state        State      @relation(fields: [stateId], references: [id], onDelete: Cascade)
+  description  String     @db.Text
+  image        String?
+  population   String?
+  history      String?    @db.Text
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 
-  @@unique([stateId, slug])
+  cities       City[]
+  villages     Village[]
+  places       Place[]
+  seoMeta      SeoMeta?
+
+  @@unique([stateId, name])
+}
+
+model City {
+  id           String     @id @default(cuid())
+  name         String
+  slug         String     @unique
+  districtId   String
+  district     District   @relation(fields: [districtId], references: [id], onDelete: Cascade)
+  description  String?    @db.Text
+  image        String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  villages     Village[]
+  places       Place[]
+  seoMeta      SeoMeta?
+}
+
+model Village {
+  id           String     @id @default(cuid())
+  name         String
+  slug         String     @unique
+  cityId       String?
+  city         City?      @relation(fields: [cityId], references: [id], onDelete: SetNull)
+  districtId   String
+  district     District   @relation(fields: [districtId], references: [id], onDelete: Cascade)
+  description  String?    @db.Text
+  history      String?    @db.Text
+  culture      String?    @db.Text
+  image        String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  places       Place[]
+  seoMeta      SeoMeta?
 }
 
 model Place {
-  id               String     @id @default(uuid())
-  districtId       String
-  district         District   @relation(fields: [districtId], references: [id], onDelete: Cascade)
-  name             String
-  slug             String     @unique
-  category         String     // e.g. Waterfall, Temple, Fort, Village, Cave, Lake
-  description      String
-  history          String
-  facts            String[]
-  howToReach       Json       // { air: string, rail: string, road: string }
-  entryFee         String
-  openingTime      String
-  bestTime         String
-  travelTips       String[]
-  carryItems       String[]
-  safetyTips       String[]
-  imageGallery     String[]
-  videos           String[]
-  googleMapUrl     String
-  latitude         Float?
-  longitude        Float?
+  id             String         @id @default(cuid())
+  title          String
+  slug           String         @unique
+  type           PlaceType      @default(HIDDEN_PLACE)
+  shortDesc      String
+  fullDesc       String         @db.Text
+  coverImage     String
+  gallery        String[]       // Array of image URLs
+  latitude       Float?
+  longitude      Float?
+  googleMapUrl   String?
+  bestTimeToVisit String?
+  entryFee       String?
+  openingTime    String?
+  closingTime    String?
+  travelBudget   PriceRange     @default(BUDGET)
+  difficulty     Difficulty     @default(EASY)
+  safetyInfo     String?        @db.Text
+  howToReach     String?        @db.Text
+  featured       Boolean        @default(false)
+  viewsCount     Int            @default(0)
 
-  reviews          Review[]
-  bookmarks        Bookmark[]
-  visited          VisitedPlace[]
+  stateId        String
+  state          State          @relation(fields: [stateId], references: [id])
+  districtId     String
+  district       District       @relation(fields: [districtId], references: [id])
+  cityId         String?
+  city           City?          @relation(fields: [cityId], references: [id])
+  villageId      String?
+  village        Village?       @relation(fields: [villageId], references: [id])
+
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  templeDetails  TempleDetails?
+  foodDetails    FoodDetails?
+  reviews        Review[]
+  bookmarks      Bookmark[]
+  seoMeta        SeoMeta?
+}
+
+model TempleDetails {
+  id             String     @id @default(cuid())
+  placeId        String     @unique
+  place          Place      @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  deity          String
+  architecture   String?
+  darshanTiming  String?
+  dressCode      String?
+  majorFestivals String[]
+  history        String?    @db.Text
+}
+
+model FoodDetails {
+  id             String     @id @default(cuid())
+  placeId        String     @unique
+  place          Place      @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  dishName       String
+  originHistory  String?    @db.Text
+  keyIngredients String[]
+  recipeSummary  String?    @db.Text
+  isVegetarian   Boolean    @default(true)
+  avgPrice       String?
 }
 
 model Review {
-  id         String   @id @default(uuid())
-  placeId    String
-  place      Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  rating     Int      // 1 to 5
-  content    String
-  isApproved Boolean  @default(false)
-  createdAt  DateTime @default(now())
-}
-
-model Journal {
-  id          String   @id @default(uuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title       String
-  content     String
-  images      String[]
-  visitedDate String
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  rating    Int      // 1 to 5
+  comment   String   @db.Text
+  images    String[]
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  placeId   String
+  place     Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 }
 
 model Bookmark {
-  id        String   @id @default(uuid())
+  id        String   @id @default(cuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   placeId   String
@@ -140,38 +254,36 @@ model Bookmark {
   @@unique([userId, placeId])
 }
 
-model VisitedPlace {
-  id        String   @id @default(uuid())
+model TravelStory {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  content   String   @db.Text
+  coverImg  String
+  published Boolean  @default(false)
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  placeId   String
-  place     Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
-
-  @@unique([userId, placeId])
+  updatedAt DateTime @updatedAt
 }
 
-model Story {
-  id         String    @id @default(uuid())
-  districtId String
-  district   District  @relation(fields: [districtId], references: [id], onDelete: Cascade)
-  title      String
-  slug       String    @unique
-  content    String
-  type       StoryType
-  author     String
-  createdAt  DateTime  @default(now())
-}
+model SeoMeta {
+  id             String    @id @default(cuid())
+  metaTitle      String
+  metaDesc       String
+  keywords       String[]
+  canonicalUrl   String?
+  ogImage        String?
+  jsonLdSchema   Json?
 
-model Food {
-  id          String   @id @default(uuid())
-  districtId  String
-  district    District @relation(fields: [districtId], references: [id], onDelete: Cascade)
-  name        String
-  type        FoodType
-  description String
-  recipe      String
-  shops       Json     // List of famous local shops { name: string, location: string, price: string }[]
-  priceRange  String   // e.g. $, $$, $$$
-  images      String[]
+  stateId        String?   @unique
+  state          State?    @relation(fields: [stateId], references: [id], onDelete: Cascade)
+  districtId     String?   @unique
+  district       District? @relation(fields: [districtId], references: [id], onDelete: Cascade)
+  cityId         String?   @unique
+  city           City?     @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  villageId      String?   @unique
+  village        Village?  @relation(fields: [villageId], references: [id], onDelete: Cascade)
+  placeId        String?   @unique
+  place          Place?    @relation(fields: [placeId], references: [id], onDelete: Cascade)
 }

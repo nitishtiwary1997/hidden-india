@@ -1,42 +1,59 @@
-import type { Metadata } from "next";
-import { Inter, Poppins } from "next/font/google";
-import "./globals.css";
-import { AppProvider } from "@/context/AppContext";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import type { Metadata } from 'next';
+import { Outfit, Plus_Jakarta_Sans } from 'next/font/google';
+import './globals.css';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
+const outfit = Outfit({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800', '900'],
+  variable: '--font-outfit',
+  display: 'swap',
 });
 
-const poppins = Poppins({
-  weight: ["300", "400", "500", "600", "700", "800"],
-  subsets: ["latin"],
-  variable: "--font-poppins",
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-jakarta',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: "Hidden India - Discover the India Beyond Tourist Maps",
-  description: "Discover offbeat places, waterfalls, ancient ruins, temples, local foods, and folklore across India's lesser-known districts.",
-  keywords: "hidden india, offbeat travel, travel india, waterfalls, ancient temples, local villages, travel guide",
+  title: 'HiddenIndia.online — AI Powered Travel & Local Discovery Platform',
+  description:
+    'Discover unexplored places, ancient temples, waterfalls, local food, heritage sites, and villages across every state and district in India with AI Trip Planner.',
+  keywords: [
+    'Hidden India',
+    'Travel India',
+    'Incredible India',
+    'Unexplored India',
+    'AI Travel Planner',
+    'Indian Temples',
+    'Waterfalls in India',
+    'Local Discovery',
+  ],
+  authors: [{ name: 'Hidden India Team' }],
+  openGraph: {
+    title: 'HiddenIndia.online — World-Class Travel & Local Discovery',
+    description: 'Explore every state, district, city, village and hidden gem in India with AI assistance.',
+    url: 'https://hiddenindia.online',
+    siteName: 'HiddenIndia.online',
+    locale: 'en_IN',
+    type: 'website',
+  },
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en" className="scroll-smooth">
-      <body className={`${inter.variable} ${poppins.variable} font-sans bg-[#F8FAFC] text-[#0F172A] dark:bg-[#0B0F19] dark:text-[#F1F5F9] antialiased min-h-screen flex flex-col`}>
-        <AppProvider>
-          <Navbar />
-          <main className="flex-grow pt-16">
-            {children}
-          </main>
-          <Footer />
-        </AppProvider>
+    <html lang="en" className={`dark scroll-smooth ${outfit.variable} ${jakarta.variable}`}>
+      <body className="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased font-sans">
+        <Navbar />
+        <main className="flex-1">{children}</main>
+        <Footer />
       </body>
     </html>
   );

@@ -2,19 +2,54 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { MapPin, Mail, Lock, Sparkles, ArrowRight, ShieldCheck } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { MapPin, Mail, Sparkles, ArrowRight, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { setStoredSession } from '@/lib/auth/authStore';
 
 export default function SignInPage() {
   const [email, setEmail] = useState('');
   const [otpSent, setOtpSent] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(false);
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleGoogleSignIn = () => {
+    setIsSigningIn(true);
+    setTimeout(() => {
+      // Simulate Google Auth Success
+      const googleUser = {
+        id: 'usr-google-101',
+        name: 'Explorer User',
+        email: 'explorer@gmail.com',
+        image: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+        role: 'ADMIN' as const,
+      };
+      setStoredSession(googleUser);
+      router.push('/admin');
+    }, 1000);
+  };
+
+  const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) setOtpSent(true);
+    if (email) {
+      if (otpSent) {
+        // Complete OTP Sign-In
+        const user = {
+          id: 'usr-email-202',
+          name: email.split('@')[0],
+          email: email,
+          image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
+          role: 'USER' as const,
+        };
+        setStoredSession(user);
+        router.push('/');
+      } else {
+        setOtpSent(true);
+      }
+    }
   };
 
   return (
-    <div className="min-h-screen py-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center relative">
+    <div className="min-h-screen py-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center relative bg-slate-950 text-slate-100">
       <div className="hero-glow" />
 
       <div className="w-full max-w-md glass-panel p-8 rounded-3xl border border-slate-800 shadow-2xl relative z-10 space-y-6">
@@ -34,17 +69,18 @@ export default function SignInPage() {
 
           <h1 className="text-xl font-bold text-white">Welcome Back Explorer</h1>
           <p className="text-slate-400 text-xs">
-            Sign in to save wishlist, share travel stories & get AI recommendations.
+            Sign in with Google to manage wishlist, post reviews & access Admin CMS.
           </p>
         </div>
 
-        {/* OAuth Buttons */}
+        {/* OAuth Google Button */}
         <div className="space-y-3">
           <button
-            onClick={() => alert('Google Sign In will connect via Auth.js in production')}
-            className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs border border-slate-800 flex items-center justify-center gap-3 transition-colors shadow-md"
+            onClick={handleGoogleSignIn}
+            disabled={isSigningIn}
+            className="w-full py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs border border-slate-700/80 flex items-center justify-center gap-3 transition-all shadow-md group disabled:opacity-50"
           >
-            <svg className="w-4 h-4" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
               <path
                 fill="#4285F4"
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -62,7 +98,7 @@ export default function SignInPage() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
               />
             </svg>
-            <span>Continue with Google</span>
+            <span>{isSigningIn ? 'Connecting to Google Account...' : 'Continue with Google Account'}</span>
           </button>
         </div>
 
@@ -74,7 +110,7 @@ export default function SignInPage() {
         </div>
 
         {/* Email Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleEmailSubmit} className="space-y-4">
           <div>
             <label className="text-xs text-slate-300 font-semibold mb-1 block">Email Address</label>
             <div className="relative">
@@ -91,9 +127,9 @@ export default function SignInPage() {
           </div>
 
           {otpSent && (
-            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs">
-              <ShieldCheck className="w-4 h-4 inline mr-1" />
-              OTP has been sent to {email}. Check your inbox!
+            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>OTP code sent to {email}. Click verify to sign in.</span>
             </div>
           )}
 
@@ -101,7 +137,7 @@ export default function SignInPage() {
             type="submit"
             className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-extrabold text-sm transition-all shadow-lg flex items-center justify-center gap-2"
           >
-            <span>{otpSent ? 'Verify & Enter' : 'Send One-Time Passcode'}</span>
+            <span>{otpSent ? 'Verify & Sign In' : 'Send One-Time Passcode'}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>

@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { 
   Compass, 
   MapPin, 
@@ -12,13 +14,29 @@ import {
   X, 
   Landmark, 
   UtensilsCrossed, 
-  Mountain 
+  Mountain,
+  LogOut,
+  User,
+  ShieldCheck
 } from 'lucide-react';
 import SearchModal from '@/components/home/SearchModal';
+import { getStoredSession, clearStoredSession, UserSession } from '@/lib/auth/authStore';
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [userSession, setUserSession] = useState<UserSession | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    setUserSession(getStoredSession());
+  }, []);
+
+  const handleLogout = () => {
+    clearStoredSession();
+    setUserSession(null);
+    router.push('/');
+  };
 
   const navLinks = [
     { label: 'Explore India', href: '/explore', icon: Compass },
@@ -85,7 +103,7 @@ export default function Navbar() {
                 onClick={() => setIsSearchOpen(true)}
               >
                 <Search className="w-4 h-4 text-amber-400" />
-                <span>Search India...</span>
+                <span>Search...</span>
                 <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] bg-slate-800 rounded text-slate-500 border border-slate-700">⌘K</kbd>
               </button>
 
@@ -101,13 +119,34 @@ export default function Navbar() {
                 </span>
               </Link>
 
-              {/* Sign In */}
-              <Link
-                href="/auth/signin"
-                className="whitespace-nowrap shrink-0 px-4 py-2 rounded-xl text-sm font-semibold bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 shadow-md shadow-orange-500/20 transition-all transform active:scale-95"
-              >
-                Sign In
-              </Link>
+              {/* Auth User Section */}
+              {userSession ? (
+                <div className="flex items-center gap-2 pl-2 border-l border-slate-800">
+                  <Link href="/admin" className="flex items-center gap-2 p-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-amber-500/40">
+                    <div className="relative w-7 h-7 rounded-full overflow-hidden border border-amber-400">
+                      <Image src={userSession.image} alt={userSession.name} fill className="object-cover" />
+                    </div>
+                    <span className="text-xs font-bold text-white max-w-[100px] truncate">{userSession.name}</span>
+                  </Link>
+
+                  <button
+                    onClick={handleLogout}
+                    title="Sign Out"
+                    className="p-2 rounded-xl bg-slate-900 text-slate-400 hover:text-rose-400 border border-slate-800"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <Link
+                  href="/auth/signin"
+                  className="whitespace-nowrap shrink-0 px-4 py-2 rounded-xl text-sm font-semibold bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 shadow-md shadow-orange-500/20 transition-all transform active:scale-95 flex items-center gap-1.5"
+                >
+                  <User className="w-4 h-4 text-slate-950" />
+                  <span>Sign In</span>
+                </Link>
+              )}
+
             </div>
 
             {/* Mobile Menu Button */}
@@ -172,13 +211,23 @@ export default function Navbar() {
             </div>
 
             <div className="pt-2">
-              <Link
-                href="/auth/signin"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="w-full whitespace-nowrap block text-center py-3 rounded-xl text-sm font-semibold bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 shadow-md shadow-orange-500/20 transition-all"
-              >
-                Sign In
-              </Link>
+              {userSession ? (
+                <button
+                  onClick={handleLogout}
+                  className="w-full whitespace-nowrap py-3 rounded-xl text-sm font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center justify-center gap-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Sign Out ({userSession.name})</span>
+                </button>
+              ) : (
+                <Link
+                  href="/auth/signin"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-full whitespace-nowrap block text-center py-3 rounded-xl text-sm font-semibold bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 shadow-md shadow-orange-500/20 transition-all"
+                >
+                  Sign In with Google
+                </Link>
+              )}
             </div>
           </div>
         )}

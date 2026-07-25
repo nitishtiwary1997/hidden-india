@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
-import { featuredStates, featuredHiddenPlaces, sampleDistricts, samplePlaces, PlaceDetailData } from '@/lib/data/mockData';
+import { featuredStates, featuredHiddenPlaces, samplePlaces, PlaceDetailData } from '@/lib/data/mockData';
+import { indianDistrictsMaster, getFullDistrictsForState } from '@/lib/data/allIndianDistricts';
 import { StateSummary, DistrictSummary, PlaceCardProps, TravelStorySummary, AdminUserInfo, CategoryStats } from '@/types';
 
 export async function getStatesData(): Promise<StateSummary[]> {
@@ -56,9 +57,11 @@ export async function getDistrictsData(): Promise<DistrictSummary[]> {
     console.error('Database connection fallback for districts:', e);
   }
 
+  // Compile full official district list across all states
   const result: DistrictSummary[] = [];
-  Object.values(sampleDistricts).forEach((list) => {
-    result.push(...list);
+  featuredStates.forEach((st) => {
+    const stateDistricts = getFullDistrictsForState(st.slug, st.name);
+    result.push(...stateDistricts);
   });
   return result;
 }
@@ -157,13 +160,11 @@ export async function getPlaceBySlug(slug: string): Promise<PlaceDetailData | nu
     console.error('Database query fallback for place slug:', e);
   }
 
-  // Fallback to samplePlaces by slug or title match
   const sample = samplePlaces.find(
     (p) => p.slug === slug || p.slug.toLowerCase() === slug.toLowerCase()
   );
   if (sample) return sample;
 
-  // Generic Dynamic Generated Page for any place title/slug
   const cleanTitle = slug
     .split('-')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))

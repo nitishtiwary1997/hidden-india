@@ -51,7 +51,7 @@ export async function getDistrictsData(): Promise<DistrictSummary[]> {
   featuredStates.forEach((st) => {
     const stateDistricts = getFullDistrictsForState(st.slug, st.name);
     stateDistricts.forEach((d) => {
-      districtMap.set(`${d.stateSlug}-${d.slug}`, d);
+      districtMap.set(d.slug, d);
     });
   });
 
@@ -66,16 +66,19 @@ export async function getDistrictsData(): Promise<DistrictSummary[]> {
 
     if (dbDistricts && dbDistricts.length > 0) {
       dbDistricts.forEach((d) => {
-        const key = `${d.state.slug}-${d.slug}`;
-        const existing = districtMap.get(key);
-        districtMap.set(key, {
+        const uniqueKey = d.slug.includes('-') && d.slug.startsWith(d.state.slug)
+          ? d.slug
+          : `${d.state.slug}-${d.slug}`;
+
+        const existing = districtMap.get(uniqueKey);
+        districtMap.set(uniqueKey, {
           id: d.id,
           name: d.name,
-          slug: d.slug,
+          slug: uniqueKey,
           stateName: d.state.name,
           stateSlug: d.state.slug,
           description: d.description || existing?.description || `District of ${d.name} in ${d.state.name}`,
-          image: (d.image && !d.image.includes('photo-1599661046827')) ? d.image : getDistrictImage(d.name),
+          image: (d.image && !d.image.includes('photo-1599661046827')) ? d.image : existing?.image || getDistrictImage(d.name),
           totalPlaces: d._count.places || existing?.totalPlaces || 4,
         });
       });

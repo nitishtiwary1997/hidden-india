@@ -221,11 +221,13 @@ export function getFullDistrictsForState(stateSlug: string, stateName: string): 
   ];
 
   return districtNames.map((dName) => {
-    const dSlug = dName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const rawSlug = dName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const globallyUniqueSlug = `${stateSlug}-${rawSlug}`;
+
     return {
-      id: `dst-${stateSlug}-${dSlug}`,
+      id: `dst-${globallyUniqueSlug}`,
       name: dName,
-      slug: dSlug,
+      slug: globallyUniqueSlug,
       stateName: stateName,
       stateSlug: stateSlug,
       description: `Official district directory for ${dName} in ${stateName}. Explore top attractions, sacred temples, and local culture.`,
@@ -237,7 +239,11 @@ export function getFullDistrictsForState(stateSlug: string, stateName: string): 
 
 // 100% Real, Authentic Places Catalog for Districts Across India
 export function getPlacesForDistrict(districtSlug: string, stateName: string): PlaceCardProps[] {
-  const cleanDistrict = districtSlug
+  const rawDistrict = districtSlug.includes('-')
+    ? districtSlug.split('-').slice(1).join(' ')
+    : districtSlug;
+
+  const cleanDistrict = rawDistrict
     .split('-')
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ');

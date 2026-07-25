@@ -4,6 +4,14 @@ import { indianDistrictsMaster, getFullDistrictsForState } from '@/lib/data/allI
 import { StateSummary, DistrictSummary, PlaceCardProps, TravelStorySummary, AdminUserInfo, CategoryStats } from '@/types';
 
 export async function getStatesData(): Promise<StateSummary[]> {
+  const stateMap = new Map<string, StateSummary>();
+
+  // 1. Load all 31 States & UTs from master featuredStates list
+  featuredStates.forEach((st) => {
+    stateMap.set(st.slug, { ...st });
+  });
+
+  // 2. Overlay real DB state records if present in database
   try {
     const dbStates = await prisma.state.findMany({
       include: {
@@ -11,41 +19,43 @@ export async function getStatesData(): Promise<StateSummary[]> {
           select: { districts: true, places: true },
         },
       },
-      orderBy: { name: 'asc' },
     });
+
     if (dbStates && dbStates.length > 0) {
-      return dbStates.map((s) => ({
-        id: s.id,
-        name: s.name,
-        slug: s.slug,
-        code: s.code,
-        capital: s.capital || '',
-        totalDistricts: s._count.districts || 0,
-        totalHiddenPlaces: s._count.places || 0,
-        bannerImage: s.bannerImage || 'https://images.unsplash.com/photo-1622308644420-a7d25e0b6b23?auto=format&fit=crop&w=1600&q=80',
-        description: s.description || '',
-      }));
+      dbStates.forEach((s) => {
+        const existing = stateMap.get(s.slug);
+        stateMap.set(s.slug, {
+          id: s.id,
+          name: s.name,
+          slug: s.slug,
+          code: s.code,
+          capital: s.capital || existing?.capital || '',
+          totalDistricts: s._count.districts || existing?.totalDistricts || 0,
+          totalHiddenPlaces: s._count.places || existing?.totalHiddenPlaces || 0,
+          bannerImage: s.bannerImage || existing?.bannerImage || 'https://images.unsplash.com/photo-1622308644420-a7d25e0b6b23?auto=format&fit=crop&w=1600&q=80',
+          description: s.description || existing?.description || '',
+        });
+      });
     }
   } catch (e) {
     console.error('Database connection fallback for states:', e);
   }
-  return featuredStates;
+
+  return Array.from(stateMap.values());
 }
 
 export async function getDistrictsData(): Promise<DistrictSummary[]> {
-  // 1. Compile full master list of all 789+ districts across all 31 Indian states & UTs
-  const masterDistricts: DistrictSummary[] = [];
+  const districtMap = new Map<string, DistrictSummary>();
+
+  // 1. Compile full official master list of all 789 districts across all 31 States & UTs
   featuredStates.forEach((st) => {
     const stateDistricts = getFullDistrictsForState(st.slug, st.name);
-    masterDistricts.push(...stateDistricts);
+    stateDistricts.forEach((d) => {
+      districtMap.set(`${d.stateSlug}-${d.slug}`, d);
+    });
   });
 
-  const districtMap = new Map<string, DistrictSummary>();
-  masterDistricts.forEach((d) => {
-    districtMap.set(`${d.stateSlug}-${d.slug}`, d);
-  });
-
-  // 2. Merge real DB districts if present in PostgreSQL database
+  // 2. Merge real DB district entries if present in PostgreSQL database
   try {
     const dbDistricts = await prisma.district.findMany({
       include: {
@@ -57,15 +67,16 @@ export async function getDistrictsData(): Promise<DistrictSummary[]> {
     if (dbDistricts && dbDistricts.length > 0) {
       dbDistricts.forEach((d) => {
         const key = `${d.state.slug}-${d.slug}`;
+        const existing = districtMap.get(key);
         districtMap.set(key, {
           id: d.id,
           name: d.name,
           slug: d.slug,
           stateName: d.state.name,
           stateSlug: d.state.slug,
-          description: d.description || `District of ${d.name} in ${d.state.name}`,
-          image: d.image || 'https://images.unsplash.com/photo-1599661046827-dacff0c0f09a?auto=format&fit=crop&w=800&q=80',
-          totalPlaces: d._count.places || 0,
+          description: d.description || existing?.description || `District of ${d.name} in ${d.state.name}`,
+          image: d.image || existing?.image || 'https://images.unsplash.com/photo-1599661046827-dacff0c0f09a?auto=format&fit=crop&w=800&q=80',
+          totalPlaces: d._count.places || existing?.totalPlaces || 0,
         });
       });
     }

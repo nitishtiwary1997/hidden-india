@@ -34,7 +34,7 @@ import {
   Save,
   Check,
   Calendar,
-  ExternalLink
+  Upload
 } from 'lucide-react';
 
 interface AdminPlacesManagerProps {
@@ -87,6 +87,7 @@ export default function AdminPlacesManager({
 
   const [imageUrlInput, setImageUrlInput] = useState('');
   const [isUpdatingImage, setIsUpdatingImage] = useState(false);
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [updateSuccessMsg, setUpdateSuccessMsg] = useState('');
 
   useEffect(() => {
@@ -197,6 +198,32 @@ export default function AdminPlacesManager({
     setActiveImageModal({ targetType, idOrSlug, name, currentImg });
     setImageUrlInput(currentImg);
     setUpdateSuccessMsg('');
+  };
+
+  // Direct File Upload Handler (Mobile / Computer file selection)
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+
+    setIsUploadingFile(true);
+    try {
+      const res = await fetch('/api/admin/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success && data.url) {
+        setImageUrlInput(data.url);
+      }
+    } catch (err) {
+      console.error('File upload error:', err);
+    } finally {
+      setIsUploadingFile(false);
+    }
   };
 
   // Save New Image URL
@@ -430,17 +457,17 @@ export default function AdminPlacesManager({
         )}
       </div>
 
-      {/* Admin Image Edit & Upload Modal */}
+      {/* Admin Image Edit & Direct Upload Modal */}
       {activeImageModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-xl w-full space-y-6 shadow-2xl relative animate-in fade-in zoom-in duration-200">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-xl w-full space-y-5 shadow-2xl relative animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div>
                 <span className="text-[10px] uppercase tracking-wider text-amber-400 font-extrabold flex items-center gap-1">
                   <Sparkles className="w-3.5 h-3.5" /> Image Manager ({activeImageModal.targetType})
                 </span>
                 <h3 className="text-xl font-bold text-white mt-1">
-                  Update Cover Image for {activeImageModal.name}
+                  Update Image for {activeImageModal.name}
                 </h3>
               </div>
               <button
@@ -465,24 +492,42 @@ export default function AdminPlacesManager({
               </span>
             </div>
 
-            {/* Image URL Input */}
+            {/* 1. Direct File Upload Box */}
+            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+              <label className="text-xs font-bold text-amber-400 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Upload className="w-4 h-4 text-amber-400" />
+                  <span>Option 1: Upload Photo from Mobile / Computer</span>
+                </span>
+                {isUploadingFile && <span className="text-emerald-400 animate-pulse text-[11px]">Uploading file...</span>}
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileUpload}
+                disabled={isUploadingFile}
+                className="w-full text-xs text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-amber-500 file:text-slate-950 hover:file:bg-amber-400 cursor-pointer bg-slate-900 rounded-xl p-1.5 border border-slate-800"
+              />
+            </div>
+
+            {/* 2. Image Web URL Input */}
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-300 block">
-                Enter Custom Image URL (Unsplash, Cloudinary, AWS S3, etc.)
+                Option 2: Or Paste Direct Web URL (Unsplash, ImgBB, PostImages, Cloudinary)
               </label>
               <input
                 type="text"
                 value={imageUrlInput}
                 onChange={(e) => setImageUrlInput(e.target.value)}
-                placeholder="https://images.unsplash.com/photo-..."
+                placeholder="https://images.unsplash.com/photo-... or /uploads/..."
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
               />
             </div>
 
-            {/* Quick Preset Selector */}
+            {/* 3. Quick Preset Selector */}
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-400 block">
-                Or Select from Preset Photography Collection:
+                Option 3: Or Pick from Curated Photography Collection:
               </label>
               <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
                 {PRESET_HD_IMAGES.map((preset, idx) => (
@@ -517,7 +562,7 @@ export default function AdminPlacesManager({
               <button
                 type="button"
                 onClick={handleSaveImage}
-                disabled={isUpdatingImage}
+                disabled={isUpdatingImage || isUploadingFile}
                 className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 text-xs font-extrabold flex items-center gap-2 shadow-lg shadow-orange-500/20"
               >
                 <Save className="w-4 h-4" />

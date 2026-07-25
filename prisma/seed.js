@@ -89,9 +89,14 @@ async function main() {
     for (const dName of districtList) {
       const districtSlug = `${st.slug}-${dName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
       await prisma.district.upsert({
-        where: { slug: districtSlug },
+        where: {
+          stateId_name: {
+            stateId: state.id,
+            name: dName,
+          },
+        },
         update: {
-          name: dName,
+          slug: districtSlug,
           description: `District of ${dName} in ${st.name}`,
         },
         create: {

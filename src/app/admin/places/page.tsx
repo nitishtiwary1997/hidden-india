@@ -1,9 +1,9 @@
 import React from 'react';
 import Link from 'next/link';
-import { Plus, Mountain, ArrowLeft } from 'lucide-react';
+import { Mountain, ArrowLeft } from 'lucide-react';
 import { getPlacesData } from '@/lib/db/getData';
-import PlaceCard from '@/components/cards/PlaceCard';
 import AdminGuard from '@/components/auth/AdminGuard';
+import AdminPlacesManager from '@/components/admin/AdminPlacesManager';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,10 +20,10 @@ export default async function AdminPlacesPage() {
             <div>
               <span className="text-amber-400 font-extrabold text-xs uppercase tracking-wider flex items-center gap-1.5 mb-1">
                 <Mountain className="w-4 h-4 text-amber-400" />
-                <span>Admin Management</span>
+                <span>Admin CMS Control Center</span>
               </span>
               <h1 className="text-3xl font-extrabold text-white">
-                Manage Places & Heritage
+                Content Manager & Heritage Places
               </h1>
             </div>
 
@@ -33,24 +33,13 @@ export default async function AdminPlacesPage() {
                 className="px-4 py-2.5 rounded-xl bg-slate-900 text-slate-300 border border-slate-800 text-xs font-semibold flex items-center gap-1.5 hover:text-white"
               >
                 <ArrowLeft className="w-4 h-4" />
-                <span>Back to Admin</span>
-              </Link>
-
-              <Link
-                href="/admin/places/new"
-                className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 rounded-xl font-extrabold text-xs flex items-center gap-1.5 shadow-lg"
-              >
-                <Plus className="w-4 h-4 text-slate-950" />
-                <span>Add New Place</span>
+                <span>Back to Dashboard</span>
               </Link>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {places.map((place) => (
-              <PlaceCard key={place.id} place={place} />
-            ))}
-          </div>
+          {/* Categorized Places Manager Component */}
+          <AdminPlacesManager places={places} />
         </div>
       </div>
     </AdminGuard>

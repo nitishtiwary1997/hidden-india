@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { StateSummary } from '@/types';
@@ -10,6 +10,10 @@ const FALLBACK_STATE_IMG = 'https://images.unsplash.com/photo-1622308644420-a7d2
 
 export default function StateCard({ state }: { state: StateSummary }) {
   const [imgSrc, setImgSrc] = useState(state.bannerImage || FALLBACK_STATE_IMG);
+
+  useEffect(() => {
+    setImgSrc(state.bannerImage || FALLBACK_STATE_IMG);
+  }, [state.bannerImage]);
 
   return (
     <div className="glass-panel glass-panel-hover rounded-3xl overflow-hidden flex flex-col h-full group relative">

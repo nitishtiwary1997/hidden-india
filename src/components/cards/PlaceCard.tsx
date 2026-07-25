@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { PlaceCardProps } from '@/types';
@@ -13,6 +13,10 @@ export default function PlaceCard({ place }: { place: PlaceCardProps }) {
   const [isSaved, setIsSaved] = useState(false);
   const [imgSrc, setImgSrc] = useState(place.coverImage || FALLBACK_PLACE_IMG);
   const budgetInfo = formatBudgetBadge(place.travelBudget);
+
+  useEffect(() => {
+    setImgSrc(place.coverImage || FALLBACK_PLACE_IMG);
+  }, [place.coverImage]);
 
   return (
     <div className="glass-panel glass-panel-hover rounded-3xl overflow-hidden flex flex-col h-full group relative">

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { DistrictSummary } from '@/types';
@@ -8,12 +8,18 @@ import { getDistrictImage } from '@/lib/data/allIndianDistricts';
 import { Building2, ArrowRight, Mountain, MapPin } from 'lucide-react';
 
 export default function DistrictCard({ district }: { district: DistrictSummary }) {
-  const initialImage =
-    district.image && !district.image.includes('photo-1599661046827')
-      ? district.image
-      : getDistrictImage(district.name);
+  const getValidImg = () => {
+    if (district.image && !district.image.includes('photo-1599661046827')) {
+      return district.image;
+    }
+    return getDistrictImage(district.name);
+  };
 
-  const [imgSrc, setImgSrc] = useState(initialImage);
+  const [imgSrc, setImgSrc] = useState(getValidImg());
+
+  useEffect(() => {
+    setImgSrc(getValidImg());
+  }, [district.image, district.name]);
 
   return (
     <div className="glass-panel glass-panel-hover rounded-3xl overflow-hidden flex flex-col h-full group relative border border-slate-800">

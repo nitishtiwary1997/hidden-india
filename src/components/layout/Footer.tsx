@@ -1,5 +1,8 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { 
   MapPin, 
   Globe, 
@@ -11,6 +14,10 @@ import {
 } from 'lucide-react';
 
 export default function Footer() {
+  const pathname = usePathname();
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
   const topStates = [
     { name: 'Rajasthan', href: '/explore/rajasthan' },
     { name: 'Himachal Pradesh', href: '/explore/himachal-pradesh' },

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { 
   Compass, 
   MapPin, 
@@ -18,12 +18,16 @@ import {
   Building2,
   LogOut,
   User,
-  ShieldCheck
+  ShieldCheck,
+  ExternalLink,
+  Layers,
+  Plus
 } from 'lucide-react';
 import SearchModal from '@/components/home/SearchModal';
 import { getStoredSession, clearStoredSession, UserSession } from '@/lib/auth/authStore';
 
 export default function Navbar() {
+  const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [userSession, setUserSession] = useState<UserSession | null>(null);
@@ -45,6 +49,92 @@ export default function Navbar() {
     setUserSession(null);
     router.push('/');
   };
+
+  // Render Dedicated Admin Header when in Admin Panel
+  if (pathname?.startsWith('/admin')) {
+    return (
+      <header className="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800 shadow-2xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            {/* Admin Brand */}
+            <Link href="/admin" className="flex items-center gap-3 group">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-orange-500 to-emerald-500 p-[2px] shadow-lg shadow-amber-500/20">
+                <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+                  <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                </div>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-lg font-extrabold text-white flex items-center gap-1.5">
+                  Hidden<span className="gold-gradient-text">India</span> Admin
+                  <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 text-[10px] border border-amber-500/30">
+                    Control Center
+                  </span>
+                </span>
+                <span className="text-[10px] text-slate-400 font-medium">
+                  Enterprise Content Management
+                </span>
+              </div>
+            </Link>
+
+            {/* Admin Quick Nav Links */}
+            <div className="hidden md:flex items-center gap-2 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800">
+              <Link
+                href="/admin"
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 ${
+                  pathname === '/admin' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span>Dashboard</span>
+              </Link>
+
+              <Link
+                href="/admin/places"
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 ${
+                  pathname === '/admin/places' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                <Building2 className="w-3.5 h-3.5" />
+                <span>All Categories</span>
+              </Link>
+
+              <Link
+                href="/admin/places/new"
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 ${
+                  pathname === '/admin/places/new' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Content</span>
+              </Link>
+            </div>
+
+            {/* Switch Back to Live Public Site */}
+            <div className="flex items-center gap-3">
+              <Link
+                href="/"
+                className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                title="View Public Website"
+              >
+                <span>View Public Website</span>
+                <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
+              </Link>
+
+              {userSession && (
+                <button
+                  onClick={handleLogout}
+                  className="p-2 rounded-xl bg-slate-900 text-slate-400 hover:text-rose-400 border border-slate-800"
+                  title="Sign Out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   const navLinks = [
     { label: 'Explore India', href: '/explore', icon: Compass },

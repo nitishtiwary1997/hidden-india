@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { 
   PlaceCardProps, 
@@ -26,13 +27,13 @@ import {
   Waves,
   BookOpen,
   Users,
-  Shield,
-  Eye,
-  Calendar,
-  Tag,
+  Image as ImageIcon,
   CheckCircle,
-  Clock,
+  X,
   Sparkles,
+  Save,
+  Check,
+  Calendar,
   ExternalLink
 } from 'lucide-react';
 
@@ -44,20 +45,49 @@ interface AdminPlacesManagerProps {
   users: AdminUserInfo[];
 }
 
+const PRESET_HD_IMAGES = [
+  { label: 'Ancient Fort / Temple', url: 'https://images.unsplash.com/photo-1599661046827-dacff0c0f09a?auto=format&fit=crop&w=1200&q=80' },
+  { label: 'Canyon / Gorge', url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80' },
+  { label: 'Himalayan Snow Peaks', url: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=1200&q=80' },
+  { label: 'Waterfall / Stream', url: 'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=1200&q=80' },
+  { label: 'Spiritual River Ghats', url: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=1200&q=80' },
+  { label: 'Golden Temple / Shrine', url: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=1200&q=80' },
+  { label: 'Emerald Backwaters', url: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=1200&q=80' },
+  { label: 'Indian Cuisine & Thali', url: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=1200&q=80' },
+  { label: 'Golden Sand Desert', url: 'https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=1200&q=80' },
+  { label: 'Royal Lake Palace', url: 'https://images.unsplash.com/photo-1590766940554-634a7ed41450?auto=format&fit=crop&w=1200&q=80' },
+];
+
 export default function AdminPlacesManager({
-  places,
-  states,
-  districts,
+  places: initialPlaces,
+  states: initialStates,
+  districts: initialDistricts,
   stories,
   users,
 }: AdminPlacesManagerProps) {
   const searchParams = useSearchParams();
   const initialTab = searchParams.get('tab') || 'ALL';
 
+  const [placesList, setPlacesList] = useState(initialPlaces);
+  const [statesList, setStatesList] = useState(initialStates);
+  const [districtsList, setDistrictsList] = useState(initialDistricts);
+
   const [selectedCategory, setSelectedCategory] = useState<string>(initialTab);
   const [selectedState, setSelectedState] = useState<string>('ALL_STATES');
   const [selectedDistrict, setSelectedDistrict] = useState<string>('ALL_DISTRICTS');
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  // Image Upload / Edit Modal State
+  const [activeImageModal, setActiveImageModal] = useState<{
+    targetType: 'STATE' | 'DISTRICT' | 'PLACE';
+    idOrSlug: string;
+    name: string;
+    currentImg: string;
+  } | null>(null);
+
+  const [imageUrlInput, setImageUrlInput] = useState('');
+  const [isUpdatingImage, setIsUpdatingImage] = useState(false);
+  const [updateSuccessMsg, setUpdateSuccessMsg] = useState('');
 
   useEffect(() => {
     const tab = searchParams.get('tab');
@@ -82,41 +112,40 @@ export default function AdminPlacesManager({
 
   // Helper count getter
   const getCategoryCount = (catId: string) => {
-    if (catId === 'ALL') return places.length;
-    if (catId === 'STATES') return states.length;
-    if (catId === 'DISTRICTS') return districts.length;
+    if (catId === 'ALL') return placesList.length;
+    if (catId === 'STATES') return statesList.length;
+    if (catId === 'DISTRICTS') return districtsList.length;
     if (catId === 'STORIES') return stories.length;
     if (catId === 'USERS') return users.length;
     if (catId === 'WATERFALL') {
-      return places.filter(p => p.type === 'WATERFALL' || p.type === 'HILL_STATION' || p.type === 'BEACH' || p.type === 'WILDLIFE_SANCTUARY').length;
+      return placesList.filter(p => p.type === 'WATERFALL' || p.type === 'HILL_STATION' || p.type === 'BEACH' || p.type === 'WILDLIFE_SANCTUARY').length;
     }
     if (catId === 'HISTORICAL') {
-      return places.filter(p => p.type === 'HISTORICAL' || p.type === 'HERITAGE_SITE' || p.type === 'MUSEUM').length;
+      return placesList.filter(p => p.type === 'HISTORICAL' || p.type === 'HERITAGE_SITE' || p.type === 'MUSEUM').length;
     }
-    return places.filter((p) => p.type === catId).length;
+    return placesList.filter((p) => p.type === catId).length;
   };
 
   // Unique States list for dropdown filter
   const stateNamesList = Array.from(
     new Set([
-      ...states.map(s => s.name),
-      ...places.map(p => p.stateName),
-      ...districts.map(d => d.stateName),
+      ...statesList.map(s => s.name),
+      ...placesList.map(p => p.stateName),
+      ...districtsList.map(d => d.stateName),
     ])
   ).sort();
 
   // District list filtered by selected state
   const filteredDistrictNames = Array.from(
     new Set(
-      districts
+      districtsList
         .filter(d => selectedState === 'ALL_STATES' || d.stateName.toLowerCase() === selectedState.toLowerCase())
         .map(d => d.name)
     )
   ).sort();
 
   // Filtered Places
-  const filteredPlaces = places.filter((p) => {
-    // Category filter
+  const filteredPlaces = placesList.filter((p) => {
     let categoryMatch = false;
     if (selectedCategory === 'ALL') categoryMatch = true;
     else if (selectedCategory === 'WATERFALL') {
@@ -127,17 +156,14 @@ export default function AdminPlacesManager({
       categoryMatch = p.type === selectedCategory;
     }
 
-    // State filter
     const stateMatch =
       selectedState === 'ALL_STATES' ||
       p.stateName.toLowerCase().includes(selectedState.toLowerCase());
 
-    // District filter
     const districtMatch =
       selectedDistrict === 'ALL_DISTRICTS' ||
       p.districtName.toLowerCase().includes(selectedDistrict.toLowerCase());
 
-    // Search query filter
     const q = searchQuery.toLowerCase().trim();
     const searchMatch =
       !q ||
@@ -150,7 +176,7 @@ export default function AdminPlacesManager({
   });
 
   // Filtered States
-  const filteredStates = states.filter((s) => {
+  const filteredStates = statesList.filter((s) => {
     const q = searchQuery.toLowerCase().trim();
     const stateMatch = selectedState === 'ALL_STATES' || s.name.toLowerCase() === selectedState.toLowerCase();
     const searchMatch = !q || s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q) || s.capital.toLowerCase().includes(q);
@@ -158,7 +184,7 @@ export default function AdminPlacesManager({
   });
 
   // Filtered Districts
-  const filteredDistricts = districts.filter((d) => {
+  const filteredDistricts = districtsList.filter((d) => {
     const q = searchQuery.toLowerCase().trim();
     const stateMatch = selectedState === 'ALL_STATES' || d.stateName.toLowerCase() === selectedState.toLowerCase();
     const districtMatch = selectedDistrict === 'ALL_DISTRICTS' || d.name.toLowerCase() === selectedDistrict.toLowerCase();
@@ -166,19 +192,50 @@ export default function AdminPlacesManager({
     return stateMatch && districtMatch && searchMatch;
   });
 
-  // Filtered Stories
-  const filteredStories = stories.filter((s) => {
-    const q = searchQuery.toLowerCase().trim();
-    return !q || s.title.toLowerCase().includes(q) || s.authorName.toLowerCase().includes(q) || s.content.toLowerCase().includes(q);
-  });
+  // Open Image Modal
+  const openImageModal = (targetType: 'STATE' | 'DISTRICT' | 'PLACE', idOrSlug: string, name: string, currentImg: string) => {
+    setActiveImageModal({ targetType, idOrSlug, name, currentImg });
+    setImageUrlInput(currentImg);
+    setUpdateSuccessMsg('');
+  };
 
-  // Filtered Users
-  const filteredUsers = users.filter((u) => {
-    const q = searchQuery.toLowerCase().trim();
-    const stateMatch = selectedState === 'ALL_STATES' || (u.state && u.state.toLowerCase() === selectedState.toLowerCase());
-    const searchMatch = !q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.role.toLowerCase().includes(q);
-    return stateMatch && searchMatch;
-  });
+  // Save New Image URL
+  const handleSaveImage = async () => {
+    if (!activeImageModal || !imageUrlInput.trim()) return;
+
+    setIsUpdatingImage(true);
+    try {
+      const res = await fetch('/api/admin/update-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          targetType: activeImageModal.targetType,
+          idOrSlug: activeImageModal.idOrSlug,
+          newImageUrl: imageUrlInput.trim(),
+        }),
+      });
+
+      if (res.ok) {
+        if (activeImageModal.targetType === 'STATE') {
+          setStatesList(prev => prev.map(s => s.slug === activeImageModal.idOrSlug ? { ...s, bannerImage: imageUrlInput.trim() } : s));
+        } else if (activeImageModal.targetType === 'DISTRICT') {
+          setDistrictsList(prev => prev.map(d => d.slug === activeImageModal.idOrSlug ? { ...d, image: imageUrlInput.trim() } : d));
+        } else if (activeImageModal.targetType === 'PLACE') {
+          setPlacesList(prev => prev.map(p => p.slug === activeImageModal.idOrSlug ? { ...p, coverImage: imageUrlInput.trim() } : p));
+        }
+
+        setUpdateSuccessMsg('Image updated successfully!');
+        setTimeout(() => {
+          setUpdateSuccessMsg('');
+          setActiveImageModal(null);
+        }, 1000);
+      }
+    } catch (e) {
+      console.error('Image update error:', e);
+    } finally {
+      setIsUpdatingImage(false);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -244,40 +301,6 @@ export default function AdminPlacesManager({
             <span>Add New Content</span>
           </Link>
         </div>
-
-        {/* Active Filters Display Tag */}
-        {(selectedState !== 'ALL_STATES' || selectedDistrict !== 'ALL_DISTRICTS' || searchQuery) && (
-          <div className="flex items-center gap-2 pt-2 border-t border-slate-800/60 flex-wrap text-xs">
-            <span className="text-slate-400 flex items-center gap-1 font-medium">
-              <Filter className="w-3.5 h-3.5 text-amber-400" /> Active Filters:
-            </span>
-            {selectedState !== 'ALL_STATES' && (
-              <span className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
-                State: {selectedState}
-              </span>
-            )}
-            {selectedDistrict !== 'ALL_DISTRICTS' && (
-              <span className="px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 flex items-center gap-1">
-                District: {selectedDistrict}
-              </span>
-            )}
-            {searchQuery && (
-              <span className="px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700 flex items-center gap-1">
-                Search: &quot;{searchQuery}&quot;
-              </span>
-            )}
-            <button
-              onClick={() => {
-                setSelectedState('ALL_STATES');
-                setSelectedDistrict('ALL_DISTRICTS');
-                setSearchQuery('');
-              }}
-              className="text-amber-400 hover:underline font-bold text-[11px] ml-auto"
-            >
-              Reset Filters
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Category Scrollable Navigation Tabs */}
@@ -323,7 +346,16 @@ export default function AdminPlacesManager({
             {filteredStates.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredStates.map((st) => (
-                  <StateCard key={st.id} state={st} />
+                  <div key={st.id} className="relative group">
+                    <StateCard state={st} />
+                    <button
+                      onClick={() => openImageModal('STATE', st.slug, st.name, st.bannerImage || '')}
+                      className="absolute top-3 right-3 px-3 py-1.5 rounded-xl bg-slate-950/90 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5 shadow-xl hover:bg-amber-500 hover:text-slate-950 transition-all z-20"
+                    >
+                      <ImageIcon className="w-3.5 h-3.5" />
+                      <span>Edit Image</span>
+                    </button>
+                  </div>
                 ))}
               </div>
             ) : (
@@ -344,7 +376,16 @@ export default function AdminPlacesManager({
             {filteredDistricts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredDistricts.map((d) => (
-                  <DistrictCard key={d.id} district={d} />
+                  <div key={d.id} className="relative group">
+                    <DistrictCard district={d} />
+                    <button
+                      onClick={() => openImageModal('DISTRICT', d.slug, d.name, d.image || '')}
+                      className="absolute top-3 right-3 px-3 py-1.5 rounded-xl bg-slate-950/90 text-cyan-300 border border-cyan-500/40 text-xs font-bold flex items-center gap-1.5 shadow-xl hover:bg-cyan-500 hover:text-slate-950 transition-all z-20"
+                    >
+                      <ImageIcon className="w-3.5 h-3.5" />
+                      <span>Edit Image</span>
+                    </button>
+                  </div>
                 ))}
               </div>
             ) : (
@@ -353,111 +394,7 @@ export default function AdminPlacesManager({
           </div>
         )}
 
-        {/* 3. TRAVEL STORIES TAB */}
-        {selectedCategory === 'STORIES' && (
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-indigo-400" />
-                <span>Community Travel Stories ({filteredStories.length})</span>
-              </h2>
-            </div>
-            {filteredStories.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredStories.map((story) => (
-                  <div key={story.id} className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-3 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between gap-2 mb-2">
-                        <span className="text-[10px] px-2.5 py-0.5 rounded-full font-extrabold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
-                          <CheckCircle className="w-3 h-3" /> Published
-                        </span>
-                        <span className="text-xs text-slate-500 flex items-center gap-1">
-                          <Calendar className="w-3 h-3 text-slate-400" /> {story.createdAt}
-                        </span>
-                      </div>
-                      <h3 className="text-base font-bold text-white mb-2 leading-snug">{story.title}</h3>
-                      <p className="text-xs text-slate-400 line-clamp-3 leading-relaxed">{story.content}</p>
-                    </div>
-
-                    <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
-                      <span className="text-slate-300 font-medium">By: {story.authorName}</span>
-                      <Link
-                        href={`/community`}
-                        className="text-amber-400 hover:underline flex items-center gap-1 font-bold"
-                      >
-                        <span>View Community</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </Link>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <NoResultsFound message="No travel stories match your search." />
-            )}
-          </div>
-        )}
-
-        {/* 4. REGISTERED USERS TAB */}
-        {selectedCategory === 'USERS' && (
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <Users className="w-5 h-5 text-purple-400" />
-                <span>Registered Users & Access Roles ({filteredUsers.length})</span>
-              </h2>
-            </div>
-            {filteredUsers.length > 0 ? (
-              <div className="glass-panel rounded-2xl border border-slate-800 overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-900/80 text-slate-400 uppercase text-[10px] font-extrabold tracking-wider border-b border-slate-800">
-                      <tr>
-                        <th className="px-5 py-3.5">User Profile</th>
-                        <th className="px-5 py-3.5">Email Address</th>
-                        <th className="px-5 py-3.5">Role</th>
-                        <th className="px-5 py-3.5">Location</th>
-                        <th className="px-5 py-3.5">Joined Date</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-800/60 text-slate-200">
-                      {filteredUsers.map((user) => (
-                        <tr key={user.id} className="hover:bg-slate-900/50 transition-colors">
-                          <td className="px-5 py-4 font-bold text-white flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-amber-500 to-orange-500 text-slate-950 flex items-center justify-center font-extrabold text-xs">
-                              {user.name.charAt(0)}
-                            </div>
-                            <span>{user.name}</span>
-                          </td>
-                          <td className="px-5 py-4 text-slate-400">{user.email}</td>
-                          <td className="px-5 py-4">
-                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${
-                              user.role === 'ADMIN' 
-                                ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                                : user.role === 'EDITOR'
-                                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                                : 'bg-slate-800 text-slate-300'
-                            }`}>
-                              {user.role}
-                            </span>
-                          </td>
-                          <td className="px-5 py-4 text-slate-400">
-                            {user.city ? `${user.city}, ${user.state}` : user.state || 'India'}
-                          </td>
-                          <td className="px-5 py-4 text-slate-500">{user.createdAt}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            ) : (
-              <NoResultsFound message="No users match your query." />
-            )}
-          </div>
-        )}
-
-        {/* 5. PLACE CATEGORY TABS (ALL, HIDDEN_PLACE, TEMPLE, WATERFALL, HISTORICAL, FOOD_DESTINATION) */}
+        {/* 3. PLACE CATEGORY TABS */}
         {!['STATES', 'DISTRICTS', 'STORIES', 'USERS'].includes(selectedCategory) && (
           <div>
             <div className="flex items-center justify-between mb-4">
@@ -472,7 +409,16 @@ export default function AdminPlacesManager({
             {filteredPlaces.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredPlaces.map((place) => (
-                  <PlaceCard key={place.id} place={place} />
+                  <div key={place.id} className="relative group">
+                    <PlaceCard place={place} />
+                    <button
+                      onClick={() => openImageModal('PLACE', place.slug, place.title, place.coverImage || '')}
+                      className="absolute top-3 right-3 px-3 py-1.5 rounded-xl bg-slate-950/90 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5 shadow-xl hover:bg-amber-500 hover:text-slate-950 transition-all z-20"
+                    >
+                      <ImageIcon className="w-3.5 h-3.5" />
+                      <span>Change Image</span>
+                    </button>
+                  </div>
                 ))}
               </div>
             ) : (
@@ -483,6 +429,104 @@ export default function AdminPlacesManager({
           </div>
         )}
       </div>
+
+      {/* Admin Image Edit & Upload Modal */}
+      {activeImageModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-xl w-full space-y-6 shadow-2xl relative animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div>
+                <span className="text-[10px] uppercase tracking-wider text-amber-400 font-extrabold flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5" /> Image Manager ({activeImageModal.targetType})
+                </span>
+                <h3 className="text-xl font-bold text-white mt-1">
+                  Update Cover Image for {activeImageModal.name}
+                </h3>
+              </div>
+              <button
+                onClick={() => setActiveImageModal(null)}
+                className="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Current Image Preview */}
+            <div className="relative h-44 w-full rounded-2xl overflow-hidden border border-slate-800 bg-slate-950">
+              <Image
+                src={imageUrlInput || activeImageModal.currentImg}
+                alt="Preview"
+                fill
+                className="object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent" />
+              <span className="absolute bottom-3 left-3 text-xs font-bold text-amber-300 bg-slate-950/80 px-2.5 py-1 rounded-lg border border-slate-800">
+                Live Image Preview
+              </span>
+            </div>
+
+            {/* Image URL Input */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-300 block">
+                Enter Custom Image URL (Unsplash, Cloudinary, AWS S3, etc.)
+              </label>
+              <input
+                type="text"
+                value={imageUrlInput}
+                onChange={(e) => setImageUrlInput(e.target.value)}
+                placeholder="https://images.unsplash.com/photo-..."
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+              />
+            </div>
+
+            {/* Quick Preset Selector */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-400 block">
+                Or Select from Preset Photography Collection:
+              </label>
+              <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+                {PRESET_HD_IMAGES.map((preset, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setImageUrlInput(preset.url)}
+                    className="px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-amber-500/50 text-[11px] text-slate-300 whitespace-nowrap shrink-0 hover:text-amber-300"
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {updateSuccessMsg && (
+              <div className="p-3 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center gap-2">
+                <Check className="w-4 h-4" />
+                <span>{updateSuccessMsg}</span>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => setActiveImageModal(null)}
+                className="px-5 py-2.5 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold hover:text-white"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveImage}
+                disabled={isUpdatingImage}
+                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 text-xs font-extrabold flex items-center gap-2 shadow-lg shadow-orange-500/20"
+              >
+                <Save className="w-4 h-4" />
+                <span>{isUpdatingImage ? 'Saving...' : 'Save & Apply Image'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

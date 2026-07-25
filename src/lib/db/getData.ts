@@ -33,37 +33,47 @@ export async function getStatesData(): Promise<StateSummary[]> {
 }
 
 export async function getDistrictsData(): Promise<DistrictSummary[]> {
+  // 1. Compile full master list of all 789+ districts across all 31 Indian states & UTs
+  const masterDistricts: DistrictSummary[] = [];
+  featuredStates.forEach((st) => {
+    const stateDistricts = getFullDistrictsForState(st.slug, st.name);
+    masterDistricts.push(...stateDistricts);
+  });
+
+  const districtMap = new Map<string, DistrictSummary>();
+  masterDistricts.forEach((d) => {
+    districtMap.set(`${d.stateSlug}-${d.slug}`, d);
+  });
+
+  // 2. Merge real DB districts if present in PostgreSQL database
   try {
     const dbDistricts = await prisma.district.findMany({
       include: {
         state: true,
         _count: { select: { places: true } },
       },
-      orderBy: { name: 'asc' },
     });
+
     if (dbDistricts && dbDistricts.length > 0) {
-      return dbDistricts.map((d) => ({
-        id: d.id,
-        name: d.name,
-        slug: d.slug,
-        stateName: d.state.name,
-        stateSlug: d.state.slug,
-        description: d.description || '',
-        image: d.image || 'https://images.unsplash.com/photo-1599661046827-dacff0c0f09a?auto=format&fit=crop&w=800&q=80',
-        totalPlaces: d._count.places || 0,
-      }));
+      dbDistricts.forEach((d) => {
+        const key = `${d.state.slug}-${d.slug}`;
+        districtMap.set(key, {
+          id: d.id,
+          name: d.name,
+          slug: d.slug,
+          stateName: d.state.name,
+          stateSlug: d.state.slug,
+          description: d.description || `District of ${d.name} in ${d.state.name}`,
+          image: d.image || 'https://images.unsplash.com/photo-1599661046827-dacff0c0f09a?auto=format&fit=crop&w=800&q=80',
+          totalPlaces: d._count.places || 0,
+        });
+      });
     }
   } catch (e) {
     console.error('Database connection fallback for districts:', e);
   }
 
-  // Compile full official district list across all states
-  const result: DistrictSummary[] = [];
-  featuredStates.forEach((st) => {
-    const stateDistricts = getFullDistrictsForState(st.slug, st.name);
-    result.push(...stateDistricts);
-  });
-  return result;
+  return Array.from(districtMap.values());
 }
 
 export async function getPlacesData(): Promise<PlaceCardProps[]> {

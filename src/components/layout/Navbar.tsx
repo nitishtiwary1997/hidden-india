@@ -15,6 +15,7 @@ import {
   Landmark, 
   UtensilsCrossed, 
   Mountain,
+  Building2,
   LogOut,
   User,
   ShieldCheck
@@ -47,6 +48,7 @@ export default function Navbar() {
 
   const navLinks = [
     { label: 'Explore India', href: '/explore', icon: Compass },
+    { label: 'Districts', href: '/districts', icon: Building2, badge: '789+' },
     { label: 'Hidden Places', href: '/hidden-places', icon: Mountain, badge: 'Popular' },
     { label: 'Temples', href: '/temples', icon: Landmark },
     { label: 'Food & Culture', href: '/food', icon: UtensilsCrossed },

@@ -25,7 +25,13 @@ import {
   Compass,
   Star,
   Award,
-  ShieldCheck
+  ShieldCheck,
+  Building2,
+  Waves,
+  Heart,
+  ChevronRight,
+  Zap,
+  Bot
 } from 'lucide-react';
 
 export default function HomeClient() {
@@ -33,17 +39,24 @@ export default function HomeClient() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
-  const filteredHiddenPlaces = featuredHiddenPlaces.filter(p => 
-    p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.stateName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.districtName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filterPlaces = () => {
+    if (activeTab === 'temples') return featuredTemples;
+    if (activeTab === 'food') return featuredFoods;
+    if (activeTab === 'hidden') return featuredHiddenPlaces;
+    return [...featuredHiddenPlaces, ...featuredTemples, ...featuredFoods].slice(0, 8);
+  };
+
+  const currentPlaces = filterPlaces();
 
   return (
-    <div className="relative min-h-screen pb-24 bg-slate-950 text-slate-100">
+    <div className="relative min-h-screen pb-24 bg-slate-950 text-slate-100 overflow-hidden">
       
+      {/* Background Ambient Glows */}
+      <div className="aurora-glow-1 top-10 left-1/4" />
+      <div className="aurora-glow-2 top-96 right-10" />
+
       {/* Hero Section with High-Resolution Backdrop Image */}
-      <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden pt-12 pb-20">
+      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-12 pb-20">
         
         {/* Full-bleed Background Image */}
         <div className="absolute inset-0 z-0">
@@ -61,24 +74,24 @@ export default function HomeClient() {
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
           
           {/* Top Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-950/80 backdrop-blur-md border border-amber-500/40 text-amber-300 text-xs font-bold uppercase tracking-widest shadow-2xl badge-glow">
-            <Sparkles className="w-4 h-4 text-amber-400" />
-            <span>AI-Powered Local Travel & Discovery</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-950/80 backdrop-blur-md border border-amber-500/40 text-amber-300 text-xs font-extrabold uppercase tracking-widest shadow-2xl badge-glow">
+            <Sparkles className="w-4 h-4 text-amber-400 animate-spin-slow" />
+            <span>AI-POWERED LOCAL DISCOVERY • 789+ DISTRICTS INDEXED</span>
           </div>
 
           {/* Main Title */}
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white leading-[1.1] hero-title-shadow tracking-tight">
-            Discover Incredible India&apos;s <br />
-            <span className="gold-gradient-text italic font-serif">Unexplored Wonders</span>
+            Explore Incredible India&apos;s <br />
+            <span className="gold-gradient-text italic font-serif">Unexplored Gems & Culture</span>
           </h1>
 
           {/* Subtitle */}
-          <p className="max-w-2xl mx-auto text-slate-200 text-sm sm:text-base lg:text-lg leading-relaxed font-normal opacity-90">
-            Explore 28 States, 765 Districts, 10,000+ Hidden Gems, Ancient Temples, Waterfalls & Local Cuisines with AI Travel Planning.
+          <p className="max-w-2xl mx-auto text-slate-200 text-sm sm:text-base lg:text-lg leading-relaxed font-medium opacity-90">
+            Discover all 31 States & UTs, 789+ Districts, Ancient Sacred Temples, Hidden Waterfalls, Local Street Food & Cultural Trails with AI Trip Planning.
           </p>
 
-          {/* Luxury Search Bar Bar */}
-          <div className="max-w-3xl mx-auto bg-slate-950/90 backdrop-blur-xl p-3 rounded-3xl border border-white/15 shadow-2xl flex flex-col sm:flex-row items-center gap-3">
+          {/* Luxury Search Bar */}
+          <div className="max-w-3xl mx-auto bg-slate-950/90 backdrop-blur-xl p-3 rounded-3xl border border-amber-500/30 shadow-2xl shadow-amber-500/10 flex flex-col sm:flex-row items-center gap-3">
             
             <button
               onClick={() => setIsSearchModalOpen(true)}
@@ -92,7 +105,7 @@ export default function HomeClient() {
 
             <button
               onClick={() => setIsSearchModalOpen(true)}
-              className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 rounded-2xl font-extrabold text-xs uppercase tracking-wider transition-all shadow-xl shadow-amber-500/20 flex items-center justify-center gap-2 transform active:scale-95 shrink-0"
+              className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 rounded-2xl font-extrabold text-xs uppercase tracking-wider transition-all shadow-xl shadow-amber-500/20 flex items-center justify-center gap-2 transform active:scale-95 shrink-0 cursor-pointer"
             >
               <Sparkles className="w-4 h-4 text-slate-950" />
               <span>AI Search</span>
@@ -100,14 +113,14 @@ export default function HomeClient() {
 
           </div>
 
-          {/* Quick Search Pills */}
+          {/* Popular Search Tags */}
           <div className="flex items-center justify-center gap-2 flex-wrap text-xs pt-2">
-            <span className="text-slate-400 font-semibold">Popular:</span>
-            {['Rajasthan', 'Gandikota Canyon', 'Kashi Vishwanath', 'Living Root Bridges', 'Dal Baati'].map((tag) => (
+            <span className="text-slate-400 font-semibold">Popular Destinations:</span>
+            {['Rajasthan Forts', 'Gandikota Canyon', 'Kashi Vishwanath', 'Living Root Bridges', 'Alleppey Backwaters', 'Spiti Valley'].map((tag) => (
               <button
                 key={tag}
                 onClick={() => setIsSearchModalOpen(true)}
-                className="px-3 py-1 rounded-full bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-amber-400 border border-slate-700/80 backdrop-blur-md transition-colors"
+                className="px-3.5 py-1.5 rounded-full bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-amber-400 border border-slate-700/80 backdrop-blur-md transition-colors cursor-pointer"
               >
                 {tag}
               </button>
@@ -117,241 +130,172 @@ export default function HomeClient() {
         </div>
       </section>
 
-      {/* Floating Key Metrics Strip */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 relative z-20">
-        <div className="glass-card p-6 rounded-3xl grid grid-cols-2 md:grid-cols-4 gap-6 text-center border border-white/10">
-          <div>
-            <div className="text-2xl sm:text-3xl font-extrabold text-white">28 States</div>
-            <div className="text-xs text-amber-400 font-semibold uppercase tracking-wider mt-1">& 8 Union Territories</div>
+      {/* Floating Key Metrics Banner */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-20">
+        <div className="glass-panel p-6 rounded-3xl grid grid-cols-2 md:grid-cols-4 gap-6 text-center border border-amber-500/20 shadow-2xl">
+          <div className="p-3 rounded-2xl bg-slate-900/50 border border-slate-800/60">
+            <div className="text-2xl sm:text-4xl font-extrabold text-white">31</div>
+            <div className="text-xs text-amber-400 font-extrabold uppercase tracking-wider mt-1">States & Union Territories</div>
           </div>
-          <div>
-            <div className="text-2xl sm:text-3xl font-extrabold text-white">765+</div>
-            <div className="text-xs text-cyan-400 font-semibold uppercase tracking-wider mt-1">Districts Indexed</div>
+          <div className="p-3 rounded-2xl bg-slate-900/50 border border-slate-800/60">
+            <div className="text-2xl sm:text-4xl font-extrabold text-cyan-400">789+</div>
+            <div className="text-xs text-slate-300 font-extrabold uppercase tracking-wider mt-1">Official Districts</div>
           </div>
-          <div>
-            <div className="text-2xl sm:text-3xl font-extrabold text-amber-400">10,000+</div>
-            <div className="text-xs text-slate-300 font-semibold uppercase tracking-wider mt-1">Hidden Spots</div>
+          <div className="p-3 rounded-2xl bg-slate-900/50 border border-slate-800/60">
+            <div className="text-2xl sm:text-4xl font-extrabold text-amber-400">10,000+</div>
+            <div className="text-xs text-slate-300 font-extrabold uppercase tracking-wider mt-1">Hidden Gems & Temples</div>
           </div>
-          <div>
-            <div className="text-2xl sm:text-3xl font-extrabold text-white">100% Free</div>
-            <div className="text-xs text-emerald-400 font-semibold uppercase tracking-wider mt-1">AI Travel Guides</div>
+          <div className="p-3 rounded-2xl bg-slate-900/50 border border-slate-800/60">
+            <div className="text-2xl sm:text-4xl font-extrabold text-emerald-400">100% Free</div>
+            <div className="text-xs text-emerald-300 font-extrabold uppercase tracking-wider mt-1">AI Travel Planner</div>
           </div>
         </div>
       </section>
 
-      {/* Main Content Sections */}
+      {/* Main Content Body */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 space-y-24 relative z-10">
         
         {/* Category Navigation Pills */}
-        <div className="flex items-center justify-center gap-3 flex-wrap">
-          <button
-            onClick={() => setActiveTab('all')}
-            className={`px-6 py-3 rounded-2xl text-xs font-extrabold transition-all flex items-center gap-2 border shadow-lg ${
-              activeTab === 'all'
-                ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-amber-500/25 scale-105'
-                : 'bg-slate-900/80 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-white'
-            }`}
-          >
-            <Globe className="w-4 h-4" />
-            <span>All Categories</span>
-          </button>
+        <section className="space-y-8">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <div>
+              <span className="text-amber-400 text-xs font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                <Compass className="w-4 h-4" />
+                <span>Explore Curated Collections</span>
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-1">
+                Must-Visit Destinations in India
+              </h2>
+            </div>
 
-          <button
-            onClick={() => setActiveTab('hidden')}
-            className={`px-6 py-3 rounded-2xl text-xs font-extrabold transition-all flex items-center gap-2 border shadow-lg ${
-              activeTab === 'hidden'
-                ? 'bg-cyan-500 text-slate-950 border-cyan-400 shadow-cyan-500/25 scale-105'
-                : 'bg-slate-900/80 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-white'
-            }`}
-          >
-            <Mountain className="w-4 h-4" />
-            <span>Hidden Places</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('temples')}
-            className={`px-6 py-3 rounded-2xl text-xs font-extrabold transition-all flex items-center gap-2 border shadow-lg ${
-              activeTab === 'temples'
-                ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-amber-500/25 scale-105'
-                : 'bg-slate-900/80 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-white'
-            }`}
-          >
-            <Landmark className="w-4 h-4" />
-            <span>Sacred Temples</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('food')}
-            className={`px-6 py-3 rounded-2xl text-xs font-extrabold transition-all flex items-center gap-2 border shadow-lg ${
-              activeTab === 'food'
-                ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-emerald-500/25 scale-105'
-                : 'bg-slate-900/80 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-white'
-            }`}
-          >
-            <UtensilsCrossed className="w-4 h-4" />
-            <span>Food & Heritage</span>
-          </button>
-        </div>
-
-        {/* Interactive Map Component */}
-        {activeTab === 'all' && (
-          <InteractiveIndiaMap />
-        )}
-
-        {/* Section 1: Explore Indian States Grid */}
-        {activeTab === 'all' && (
-          <section className="space-y-8">
-            <div className="flex items-end justify-between flex-wrap gap-4 border-b border-slate-800/80 pb-4">
-              <div>
-                <span className="text-amber-400 font-extrabold text-xs uppercase tracking-widest flex items-center gap-1.5 mb-1">
-                  <MapPin className="w-4 h-4 text-amber-400" />
-                  <span>State & District Ecosystem</span>
-                </span>
-                <h2 className="text-3xl sm:text-4xl font-extrabold text-white font-serif">
-                  Explore India By State
-                </h2>
-              </div>
-              
-              <Link
-                href="/explore"
-                className="text-xs font-extrabold text-amber-400 hover:text-amber-300 transition-colors flex items-center gap-1.5 group px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-amber-500/30"
+            <div className="flex items-center gap-2 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800">
+              <button
+                onClick={() => setActiveTab('all')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'all' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
+                }`}
               >
-                <span>View All 28 States</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                All Places
+              </button>
+              <button
+                onClick={() => setActiveTab('hidden')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'hidden' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Hidden Gems
+              </button>
+              <button
+                onClick={() => setActiveTab('temples')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'temples' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Sacred Temples
+              </button>
+              <button
+                onClick={() => setActiveTab('food')}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'food' ? 'bg-amber-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Food Trails
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {currentPlaces.map((place) => (
+              <PlaceCard key={place.id} place={place} />
+            ))}
+          </div>
+        </section>
+
+        {/* AI Itinerary Planner Featured Banner */}
+        <section className="relative glass-panel p-8 sm:p-12 rounded-3xl border border-amber-500/30 overflow-hidden group">
+          <div className="absolute right-0 top-0 w-96 h-96 bg-amber-500/10 blur-[100px] pointer-events-none" />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center relative z-10">
+            <div className="lg:col-span-2 space-y-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-extrabold uppercase">
+                <Bot className="w-4 h-4 text-amber-400" />
+                <span>AI Travel Assistant</span>
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
+                Plan Your Dream Trip to Any District with <span className="gold-gradient-text">HiddenIndia AI</span>
+              </h2>
+              <p className="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-xl">
+                Get custom day-by-day itineraries, recommended food spots, best travel routes, entry fees, and weather forecasts tailored for your travel budget.
+              </p>
+            </div>
+            <div className="flex justify-start lg:justify-end">
+              <Link
+                href="/ai-planner"
+                className="px-8 py-4 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-extrabold text-xs uppercase tracking-wider rounded-2xl flex items-center gap-2 shadow-2xl shadow-amber-500/20 transform group-hover:scale-105 transition-all"
+              >
+                <Sparkles className="w-4 h-4 text-slate-950" />
+                <span>Generate Free AI Itinerary</span>
+                <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
+          </div>
+        </section>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredStates.map((state) => (
-                <StateCard key={state.id} state={state} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Section 2: Featured Hidden Places */}
-        {(activeTab === 'all' || activeTab === 'hidden') && (
-          <section className="space-y-8">
-            <div className="flex items-end justify-between flex-wrap gap-4 border-b border-slate-800/80 pb-4">
-              <div>
-                <span className="text-cyan-400 font-extrabold text-xs uppercase tracking-widest flex items-center gap-1.5 mb-1">
-                  <Mountain className="w-4 h-4 text-cyan-400" />
-                  <span>Unexplored Wonders</span>
-                </span>
-                <h2 className="text-3xl sm:text-4xl font-extrabold text-white font-serif">
-                  Featured Hidden Places
-                </h2>
-              </div>
-
-              <Link
-                href="/hidden-places"
-                className="text-xs font-extrabold text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1.5 group px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-cyan-500/30"
-              >
-                <span>Discover 10,000+ Hidden Places</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
+        {/* Top States Directory Grid */}
+        <section className="space-y-8">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <div>
+              <span className="text-amber-400 text-xs font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                <Globe className="w-4 h-4" />
+                <span>State Directories</span>
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-1">
+                Explore Popular Indian States
+              </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredHiddenPlaces.map((place) => (
-                <PlaceCard key={place.id} place={place} />
-              ))}
-            </div>
-          </section>
-        )}
+            <Link
+              href="/explore"
+              className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-amber-400 text-xs font-bold flex items-center gap-2 transition-colors"
+            >
+              <span>View All 31 States & UTs (789+ Districts)</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
 
-        {/* Section 3: Sacred Temples */}
-        {(activeTab === 'all' || activeTab === 'temples') && (
-          <section className="space-y-8">
-            <div className="flex items-end justify-between flex-wrap gap-4 border-b border-slate-800/80 pb-4">
-              <div>
-                <span className="text-amber-400 font-extrabold text-xs uppercase tracking-widest flex items-center gap-1.5 mb-1">
-                  <Landmark className="w-4 h-4 text-amber-400" />
-                  <span>Spiritual Heritage</span>
-                </span>
-                <h2 className="text-3xl sm:text-4xl font-extrabold text-white font-serif">
-                  Ancient Temples of India
-                </h2>
-              </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {featuredStates.slice(0, 8).map((state) => (
+              <StateCard key={state.id} state={state} />
+            ))}
+          </div>
+        </section>
 
-              <Link
-                href="/temples"
-                className="text-xs font-extrabold text-amber-400 hover:text-amber-300 transition-colors flex items-center gap-1.5 group px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-amber-500/30"
-              >
-                <span>Browse Temple Directory</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredTemples.map((temple) => (
-                <PlaceCard key={temple.id} place={temple} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Section 4: Authentic Regional Food */}
-        {(activeTab === 'all' || activeTab === 'food') && (
-          <section className="space-y-8">
-            <div className="flex items-end justify-between flex-wrap gap-4 border-b border-slate-800/80 pb-4">
-              <div>
-                <span className="text-emerald-400 font-extrabold text-xs uppercase tracking-widest flex items-center gap-1.5 mb-1">
-                  <UtensilsCrossed className="w-4 h-4 text-emerald-400" />
-                  <span>Culinary Heritage</span>
-                </span>
-                <h2 className="text-3xl sm:text-4xl font-extrabold text-white font-serif">
-                  Famous Regional Food & Dishes
-                </h2>
-              </div>
-
-              <Link
-                href="/food"
-                className="text-xs font-extrabold text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1.5 group px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-emerald-500/30"
-              >
-                <span>Explore Food Trail</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {featuredFoods.map((food) => (
-                <PlaceCard key={food.id} place={food} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* AI Trip Planner Feature Banner */}
-        <section className="glass-card p-8 sm:p-12 rounded-3xl border border-purple-500/40 bg-gradient-to-r from-purple-950/80 via-slate-950 to-slate-950 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl">
-          <div className="space-y-4 max-w-xl text-center md:text-left">
-            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs font-extrabold uppercase tracking-wider shadow-lg">
-              <Sparkles className="w-4 h-4 text-amber-300" />
-              <span>AI Travel Assistant</span>
+        {/* Interactive India Map Discovery Component */}
+        <section className="space-y-8">
+          <div className="text-center space-y-3 max-w-2xl mx-auto">
+            <span className="text-amber-400 text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-1.5">
+              <MapPin className="w-4 h-4" />
+              <span>Interactive Map Discovery</span>
             </span>
-
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight font-serif">
-              Plan Your Dream Trip Across India in 30 Seconds
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white">
+              Explore India State-by-State
             </h2>
-
-            <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
-              आपकी बजट, दिन की संख्या और पसंद के अनुसार AI स्वचालित रूप से दिन-प्रतिदिन का ट्रेवल प्लान तैयार करता है।
+            <p className="text-slate-400 text-xs sm:text-sm">
+              Click on any state on the map below to discover its official districts, secret waterfalls, ancient temples, and local cuisine.
             </p>
           </div>
 
-          <Link
-            href="/ai-planner"
-            className="px-8 py-4 bg-gradient-to-r from-purple-500 via-indigo-600 to-purple-600 hover:from-purple-400 hover:to-indigo-500 text-white font-extrabold text-sm rounded-2xl shadow-xl shadow-purple-500/30 transition-all flex items-center gap-2.5 shrink-0 transform hover:scale-105 active:scale-95"
-          >
-            <Sparkles className="w-5 h-5 text-amber-300" />
-            <span>Try AI Trip Planner Free</span>
-          </Link>
+          <div className="glass-panel p-6 sm:p-10 rounded-3xl border border-slate-800">
+            <InteractiveIndiaMap />
+          </div>
         </section>
 
       </div>
 
-      {/* AI Search & Voice Search Modal */}
-      <SearchModal isOpen={isSearchModalOpen} onClose={() => setIsSearchModalOpen(false)} />
+      {/* Global Search Modal */}
+      {isSearchModalOpen && (
+        <SearchModal isOpen={isSearchModalOpen} onClose={() => setIsSearchModalOpen(false)} />
+      )}
+
     </div>
   );
 }

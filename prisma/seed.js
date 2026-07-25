@@ -35,8 +35,131 @@ const allIndianStates = [
   { name: 'Ladakh', slug: 'ladakh', code: 'LA', capital: 'Leh', description: 'Land of High Passes, Pangong Tso crystal lake, Nubra valley sand dunes, and Hemis monastery.', bannerImage: 'https://images.unsplash.com/photo-1581793745862-99fde7fa73d2?auto=format&fit=crop&w=1200&q=80' },
 ];
 
+const initialPlaces = [
+  {
+    title: 'Gandikota Grand Canyon',
+    slug: 'gandikota-grand-canyon',
+    type: 'HIDDEN_PLACE',
+    stateSlug: 'andhra-pradesh',
+    districtName: 'Kadapa',
+    shortDesc: 'India’s own Grand Canyon formed by Pennar river cutting through Erramala hills.',
+    fullDesc: 'Gandikota is a small village in Kadapa district of Andhra Pradesh, known for its breathtaking gorge.',
+    coverImage: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+    bestTimeToVisit: 'October to March',
+    travelBudget: 'BUDGET',
+  },
+  {
+    title: 'Kakolat Waterfall',
+    slug: 'kakolat-waterfall',
+    type: 'WATERFALL',
+    stateSlug: 'bihar',
+    districtName: 'Nawada',
+    shortDesc: 'Picturesque 160-feet cold water cascade hidden in the forested hills of Nawada.',
+    fullDesc: 'Kakolat waterfall is a famous waterfall in Nawada district of Bihar surrounded by lush green hills.',
+    coverImage: 'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=1200&q=80',
+    bestTimeToVisit: 'October to March',
+    travelBudget: 'BUDGET',
+  },
+  {
+    title: 'Mahabodhi Temple',
+    slug: 'mahabodhi-temple',
+    type: 'TEMPLE',
+    stateSlug: 'bihar',
+    districtName: 'Bodh Gaya',
+    shortDesc: 'UNESCO World Heritage site marking the location where Lord Buddha attained enlightenment.',
+    fullDesc: 'The Mahabodhi Temple Complex is one of the four holy sites related to the life of Lord Buddha.',
+    coverImage: 'https://images.unsplash.com/photo-1609946782701-d85a153282b0?auto=format&fit=crop&w=1200&q=80',
+    bestTimeToVisit: 'November to February',
+    travelBudget: 'FREE',
+  },
+  {
+    title: 'Nohkalikai Waterfalls',
+    slug: 'nohkalikai-waterfalls',
+    type: 'WATERFALL',
+    stateSlug: 'meghalaya',
+    districtName: 'East Khasi Hills',
+    shortDesc: 'Tallest plunge waterfall in India dropping 1,115 feet into a turquoise blue pool.',
+    fullDesc: 'Nohkalikai Falls is the tallest plunge waterfall in India near Sohra (Cherrapunji).',
+    coverImage: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80',
+    bestTimeToVisit: 'September to May',
+    travelBudget: 'BUDGET',
+  },
+  {
+    title: 'Dudhsagar Waterfalls',
+    slug: 'dudhsagar-waterfalls',
+    type: 'WATERFALL',
+    stateSlug: 'goa',
+    districtName: 'South Goa',
+    shortDesc: 'Four-tiered spectacular milk-like waterfall cascading down 1,017 feet along railway tracks.',
+    fullDesc: 'Dudhsagar Falls is a four-tiered waterfall located on Mandovi River in Goa.',
+    coverImage: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=1200&q=80',
+    bestTimeToVisit: 'July to December',
+    travelBudget: 'MODERATE',
+  },
+  {
+    title: 'Kashi Vishwanath Temple',
+    slug: 'kashi-vishwanath-temple',
+    type: 'TEMPLE',
+    stateSlug: 'uttar-pradesh',
+    districtName: 'Varanasi',
+    shortDesc: 'One of the most sacred 12 Jyotirlinga shrines of Lord Shiva on the banks of Ganga.',
+    fullDesc: 'Kashi Vishwanath Temple is one of the most famous Shiva temples in Varanasi.',
+    coverImage: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=1200&q=80',
+    bestTimeToVisit: 'All Year',
+    travelBudget: 'FREE',
+  },
+  {
+    title: 'Golden Temple',
+    slug: 'golden-temple-amritsar',
+    type: 'TEMPLE',
+    stateSlug: 'punjab',
+    districtName: 'Amritsar',
+    shortDesc: 'Preeminent spiritual gurdwara of Sikhism surrounded by the Amrit Sarovar lake.',
+    fullDesc: 'Sri Harmandir Sahib covered in gold leaf serving free community meals 24/7.',
+    coverImage: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=1200&q=80',
+    bestTimeToVisit: 'All Year',
+    travelBudget: 'FREE',
+  },
+  {
+    title: 'Kedarnath Dham Temple',
+    slug: 'kedarnath-dham-temple',
+    type: 'TEMPLE',
+    stateSlug: 'uttarakhand',
+    districtName: 'Rudraprayag',
+    shortDesc: 'Sacred Himalayan shrine dedicated to Lord Shiva situated at 11,755 ft elevation.',
+    fullDesc: 'Kedarnath Temple set amidst Himalayan peaks in Rudraprayag, Uttarakhand.',
+    coverImage: 'https://images.unsplash.com/photo-1588668214407-6ea9a6d8c272?auto=format&fit=crop&w=1200&q=80',
+    bestTimeToVisit: 'May to October',
+    travelBudget: 'MODERATE',
+  },
+  {
+    title: 'Authentic Dal Baati Churma',
+    slug: 'dal-baati-churma',
+    type: 'FOOD_DESTINATION',
+    stateSlug: 'rajasthan',
+    districtName: 'Jaipur',
+    shortDesc: 'Traditional Rajasthani delicacy baked in fuel dipped in pure desi ghee.',
+    fullDesc: 'Dal Baati Churma is an iconic Rajasthani delicacy with spicy lentils, baati, and churma.',
+    coverImage: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=1200&q=80',
+    bestTimeToVisit: 'All Year',
+    travelBudget: 'BUDGET',
+  },
+  {
+    title: 'Bihari Litti Chokha',
+    slug: 'bihari-litti-chokha',
+    type: 'FOOD_DESTINATION',
+    stateSlug: 'bihar',
+    districtName: 'Patna',
+    shortDesc: 'Roasted sattu stuffed wheat balls served with smoky eggplant & potato chokha.',
+    fullDesc: 'Litti Chokha is the iconic authentic dish of Bihar with sattu stuffing and ghee.',
+    coverImage: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=1200&q=80',
+    bestTimeToVisit: 'All Year',
+    travelBudget: 'BUDGET',
+  },
+];
+
 async function main() {
-  console.log('🌱 Starting full database seed script with 28 Indian States & UTs...');
+  console.log('🌱 Syncing all 28 States & Places in Database...');
 
   for (const st of allIndianStates) {
     const state = await prisma.state.upsert({
@@ -53,7 +176,50 @@ async function main() {
     console.log(`✓ State synced: ${state.name} (${state.code})`);
   }
 
-  console.log('🚀 All 28 States & UTs synced successfully!');
+  for (const pl of initialPlaces) {
+    const state = await prisma.state.findUnique({ where: { slug: pl.stateSlug } });
+    if (!state) continue;
+
+    const districtSlug = pl.districtName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    let district = await prisma.district.findUnique({ where: { slug: districtSlug } });
+
+    if (!district) {
+      district = await prisma.district.create({
+        data: {
+          name: pl.districtName,
+          slug: districtSlug,
+          stateId: state.id,
+          description: `District of ${pl.districtName} in ${state.name}.`,
+        },
+      });
+    }
+
+    await prisma.place.upsert({
+      where: { slug: pl.slug },
+      update: {
+        title: pl.title,
+        shortDesc: pl.shortDesc,
+        fullDesc: pl.fullDesc,
+        coverImage: pl.coverImage,
+        bestTimeToVisit: pl.bestTimeToVisit,
+        travelBudget: pl.travelBudget,
+      },
+      create: {
+        title: pl.title,
+        slug: pl.slug,
+        type: pl.type,
+        shortDesc: pl.shortDesc,
+        fullDesc: pl.fullDesc,
+        coverImage: pl.coverImage,
+        stateId: state.id,
+        districtId: district.id,
+        bestTimeToVisit: pl.bestTimeToVisit,
+        travelBudget: pl.travelBudget,
+      },
+    });
+  }
+
+  console.log('🚀 All 28 States, Districts, and Places synced successfully!');
 }
 
 main()

@@ -363,17 +363,103 @@ export const featuredStates: StateSummary[] = [
 ];
 
 export const sampleDistricts: Record<string, DistrictSummary[]> = {
-  rajasthan: [
-    { id: 'dst-jp', name: 'Jaipur', slug: 'jaipur', stateName: 'Rajasthan', stateSlug: 'rajasthan', description: 'The Pink City famous for Hawa Mahal, Amer Fort, and royal heritage.', image: 'https://images.unsplash.com/photo-1599661046827-dacff0c0f09a?auto=format&fit=crop&w=800&q=80', totalPlaces: 45 },
-    { id: 'dst-ud', name: 'Udaipur', slug: 'udaipur', stateName: 'Rajasthan', stateSlug: 'rajasthan', description: 'City of Lakes surrounded by the Aravali hills and royal palaces.', image: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=800&q=80', totalPlaces: 38 },
+  'andhra-pradesh': [
+    { id: 'dst-ap-1', name: 'Kadapa', slug: 'kadapa', stateName: 'Andhra Pradesh', stateSlug: 'andhra-pradesh', description: 'Famous for Gandikota Grand Canyon and Belum Caves.', image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80', totalPlaces: 35 },
+    { id: 'dst-ap-2', name: 'Tirupati', slug: 'tirupati', stateName: 'Andhra Pradesh', stateSlug: 'andhra-pradesh', description: 'World famous pilgrim city housing Tirumala Venkateswara shrine.', image: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=800&q=80', totalPlaces: 40 },
+    { id: 'dst-ap-3', name: 'Visakhapatnam', slug: 'visakhapatnam', stateName: 'Andhra Pradesh', stateSlug: 'andhra-pradesh', description: 'Port city known for Araku Valley, Borra Caves, and RK Beach.', image: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80', totalPlaces: 42 },
   ],
-  'himachal-pradesh': [
-    { id: 'dst-sm', name: 'Shimla', slug: 'shimla', stateName: 'Himachal Pradesh', stateSlug: 'himachal-pradesh', description: 'Queen of Hills featuring British colonial architecture and pine forests.', image: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=800&q=80', totalPlaces: 32 },
-    { id: 'dst-kl', name: 'Kullu', slug: 'kullu', stateName: 'Himachal Pradesh', stateSlug: 'himachal-pradesh', description: 'Valley of Gods famous for Manali, Solang Valley, and river rafting.', image: 'https://images.unsplash.com/photo-1588668214407-6ea9a6d8c272?auto=format&fit=crop&w=800&q=80', totalPlaces: 50 },
+  'arunachal-pradesh': [
+    { id: 'dst-ar-1', name: 'Tawang', slug: 'tawang', stateName: 'Arunachal Pradesh', stateSlug: 'arunachal-pradesh', description: 'Perched high in Eastern Himalayas, famous for Tawang Monastery & Sela Pass.', image: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=800&q=80', totalPlaces: 28 },
+    { id: 'dst-ar-2', name: 'Lower Subansiri', slug: 'lower-subansiri', stateName: 'Arunachal Pradesh', stateSlug: 'arunachal-pradesh', description: 'Ziro Valley UNESCO tentative site known for Apatani tribal culture.', image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80', totalPlaces: 22 },
+  ],
+  assam: [
+    { id: 'dst-as-1', name: 'Golaghat', slug: 'golaghat', stateName: 'Assam', stateSlug: 'assam', description: 'Gateway to Kaziranga National Park, home of the Great Indian one-horned rhino.', image: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80', totalPlaces: 30 },
+    { id: 'dst-as-2', name: 'Kamrup Metropolitan', slug: 'kamrup-metropolitan', stateName: 'Assam', stateSlug: 'assam', description: 'Guwahati hub featuring Kamakhya Temple and Umananda river island.', image: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80', totalPlaces: 35 },
   ],
   bihar: [
-    { id: 'dst-nw', name: 'Nawada', slug: 'nawada', stateName: 'Bihar', stateSlug: 'bihar', description: 'Famous for Kakolat waterfalls and ancient hill shrines.', image: 'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=800&q=80', totalPlaces: 25 },
-    { id: 'dst-bg', name: 'Bodh Gaya', slug: 'bodh-gaya', stateName: 'Bihar', stateSlug: 'bihar', description: 'World Buddhist holy place where Lord Buddha attained enlightenment.', image: 'https://images.unsplash.com/photo-1609946782701-d85a153282b0?auto=format&fit=crop&w=800&q=80', totalPlaces: 30 },
+    { id: 'dst-br-1', name: 'Nawada', slug: 'nawada', stateName: 'Bihar', stateSlug: 'bihar', description: 'Famous for Kakolat waterfalls and lush green forest reserves.', image: 'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=800&q=80', totalPlaces: 25 },
+    { id: 'dst-br-2', name: 'Gaya', slug: 'gaya', stateName: 'Bihar', stateSlug: 'bihar', description: 'Bodh Gaya Mahabodhi Temple where Buddha attained enlightenment.', image: 'https://images.unsplash.com/photo-1609946782701-d85a153282b0?auto=format&fit=crop&w=800&q=80', totalPlaces: 38 },
+    { id: 'dst-br-3', name: 'Nalanda', slug: 'nalanda', stateName: 'Bihar', stateSlug: 'bihar', description: 'Ancient seat of learning Nalanda University ruins and Rajgir hills.', image: 'https://images.unsplash.com/photo-1622308644420-a7d25e0b6b23?auto=format&fit=crop&w=800&q=80', totalPlaces: 32 },
+  ],
+  chhattisgarh: [
+    { id: 'dst-cg-1', name: 'Bastar', slug: 'bastar', stateName: 'Chhattisgarh', stateSlug: 'chhattisgarh', description: 'Home to Chitrakote Falls (Niagara of India) and tribal handicraft culture.', image: 'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=800&q=80', totalPlaces: 28 },
+  ],
+  goa: [
+    { id: 'dst-ga-1', name: 'South Goa', slug: 'south-goa', stateName: 'Goa', stateSlug: 'goa', description: 'Serene white beaches like Palolem, Dudhsagar Waterfalls, and Netravali reserve.', image: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=800&q=80', totalPlaces: 40 },
+    { id: 'dst-ga-2', name: 'North Goa', slug: 'north-goa', stateName: 'Goa', stateSlug: 'goa', description: 'Fort Aguada, Basilica of Bom Jesus, Calangute, and Panaji promenade.', image: 'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=800&q=80', totalPlaces: 45 },
+  ],
+  gujarat: [
+    { id: 'dst-gj-1', name: 'Kutch', slug: 'kutch', stateName: 'Gujarat', stateSlug: 'gujarat', description: 'Great Rann of Kutch white salt desert and handicraft villages.', image: 'https://images.unsplash.com/photo-1609946782701-d85a153282b0?auto=format&fit=crop&w=800&q=80', totalPlaces: 42 },
+    { id: 'dst-gj-2', name: 'Gir Somnath', slug: 'gir-somnath', stateName: 'Gujarat', stateSlug: 'gujarat', description: 'First Jyotirlinga Somnath Temple and Gir Asiatic Lion National Park.', image: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80', totalPlaces: 36 },
+  ],
+  haryana: [
+    { id: 'dst-hr-1', name: 'Kurukshetra', slug: 'kurukshetra', stateName: 'Haryana', stateSlug: 'haryana', description: 'Sacred land of Bhagavad Gita sermon, Brahma Sarovar, and Jyotisar.', image: 'https://images.unsplash.com/photo-1588668214407-6ea9a6d8c272?auto=format&fit=crop&w=800&q=80', totalPlaces: 26 },
+  ],
+  'himachal-pradesh': [
+    { id: 'dst-hp-1', name: 'Shimla', slug: 'shimla', stateName: 'Himachal Pradesh', stateSlug: 'himachal-pradesh', description: 'Capital hill station famous for Mall Road, Jakhoo temple, and Kalka-Shimla train.', image: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=800&q=80', totalPlaces: 48 },
+    { id: 'dst-hp-2', name: 'Kullu', slug: 'kullu', stateName: 'Himachal Pradesh', stateSlug: 'himachal-pradesh', description: 'Manali, Solang Valley, Rohtang Pass, and Beas river adventure sports.', image: 'https://images.unsplash.com/photo-1588668214407-6ea9a6d8c272?auto=format&fit=crop&w=800&q=80', totalPlaces: 52 },
+    { id: 'dst-hp-3', name: 'Lahaul and Spiti', slug: 'lahaul-and-spiti', stateName: 'Himachal Pradesh', stateSlug: 'himachal-pradesh', description: 'Spiti Valley cold desert, Key Monastery, and Chandratal high altitude lake.', image: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=800&q=80', totalPlaces: 35 },
+  ],
+  jharkhand: [
+    { id: 'dst-jh-1', name: 'Ranchi', slug: 'ranchi', stateName: 'Jharkhand', stateSlug: 'jharkhand', description: 'City of Waterfalls including Hundru, Dassam, Jonha, and Patratu valley.', image: 'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=800&q=80', totalPlaces: 32 },
+  ],
+  karnataka: [
+    { id: 'dst-ka-1', name: 'Vijayanagara', slug: 'vijayanagara', stateName: 'Karnataka', stateSlug: 'karnataka', description: 'Hampi UNESCO World Heritage ruins, Stone Chariot, and Virupaksha Temple.', image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80', totalPlaces: 50 },
+    { id: 'dst-ka-2', name: 'Hassan', slug: 'hassan', stateName: 'Karnataka', stateSlug: 'karnataka', description: 'Shettihalli Submerged Rosary Church and Belur Chennakesava temple.', image: 'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=800&q=80', totalPlaces: 34 },
+    { id: 'dst-ka-3', name: 'Kodagu', slug: 'kodagu', stateName: 'Karnataka', stateSlug: 'karnataka', description: 'Coorg coffee plantations, Abbey Falls, Talakaveri, and Raja Seat.', image: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=800&q=80', totalPlaces: 42 },
+  ],
+  kerala: [
+    { id: 'dst-kl-1', name: 'Alappuzha', slug: 'alappuzha', stateName: 'Kerala', stateSlug: 'kerala', description: 'Venice of the East known for Alleppey backwater houseboats and beaches.', image: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=800&q=80', totalPlaces: 45 },
+    { id: 'dst-kl-2', name: 'Idukki', slug: 'idukki', stateName: 'Kerala', stateSlug: 'kerala', description: 'Munnar tea plantations, Anamudi peak, and Arch Dam.', image: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=800&q=80', totalPlaces: 40 },
+  ],
+  'madhya-pradesh': [
+    { id: 'dst-mp-1', name: 'Ujjain', slug: 'ujjain', stateName: 'Madhya Pradesh', stateSlug: 'madhya-pradesh', description: 'Sacred Mahakaleshwar Jyotirlinga on Shipra river banks, site of Kumbh Mela.', image: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80', totalPlaces: 38 },
+    { id: 'dst-mp-2', name: 'Jabalpur', slug: 'jabalpur', stateName: 'Madhya Pradesh', stateSlug: 'madhya-pradesh', description: 'Bhedaghat Marble Rocks and roaring Dhuandhar Waterfalls on Narmada river.', image: 'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=800&q=80', totalPlaces: 30 },
+  ],
+  maharashtra: [
+    { id: 'dst-mh-1', name: 'Pune', slug: 'pune', stateName: 'Maharashtra', stateSlug: 'maharashtra', description: 'Cultural capital of Maharashtra, Shaniwar Wada, Sinhagad Fort, and Misal Pav.', image: 'https://images.unsplash.com/photo-1570168007204-dfb528c6958f?auto=format&fit=crop&w=800&q=80', totalPlaces: 52 },
+    { id: 'dst-mh-2', name: 'Chhatrapati Sambhajinagar', slug: 'chhatrapati-sambhajinagar', stateName: 'Maharashtra', stateSlug: 'maharashtra', description: 'UNESCO World Heritage Ajanta & Ellora cave temples and Daulatabad Fort.', image: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=800&q=80', totalPlaces: 44 },
+  ],
+  meghalaya: [
+    { id: 'dst-ml-1', name: 'East Khasi Hills', slug: 'east-khasi-hills', stateName: 'Meghalaya', stateSlug: 'meghalaya', description: 'Shillong peak, Nohkalikai Falls Sohra Cherrapunji, and Elephant Falls.', image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80', totalPlaces: 36 },
+  ],
+  odisha: [
+    { id: 'dst-od-1', name: 'Puri', slug: 'puri', stateName: 'Odisha', stateSlug: 'odisha', description: 'Lord Jagannath Temple, Rath Yatra, Konark Sun Temple, and Golden Beach.', image: 'https://images.unsplash.com/photo-1609946782701-d85a153282b0?auto=format&fit=crop&w=800&q=80', totalPlaces: 46 },
+  ],
+  punjab: [
+    { id: 'dst-pb-1', name: 'Amritsar', slug: 'amritsar', stateName: 'Punjab', stateSlug: 'punjab', description: 'Golden Temple (Sri Harmandir Sahib), Jallianwala Bagh, and Wagah Border.', image: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=800&q=80', totalPlaces: 40 },
+  ],
+  rajasthan: [
+    { id: 'dst-rj-1', name: 'Jaipur', slug: 'jaipur', stateName: 'Rajasthan', stateSlug: 'rajasthan', description: 'The Pink City famous for Hawa Mahal, Amer Fort, City Palace, and Jantar Mantar.', image: 'https://images.unsplash.com/photo-1599661046827-dacff0c0f09a?auto=format&fit=crop&w=800&q=80', totalPlaces: 55 },
+    { id: 'dst-rj-2', name: 'Udaipur', slug: 'udaipur', stateName: 'Rajasthan', stateSlug: 'rajasthan', description: 'City of Lakes featuring Lake Pichola, Jag Mandir, and Taj Lake Palace.', image: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=800&q=80', totalPlaces: 45 },
+    { id: 'dst-rj-3', name: 'Jaisalmer', slug: 'jaisalmer', stateName: 'Rajasthan', stateSlug: 'rajasthan', description: 'The Golden City, living Jaisalmer Fort, Sam Sand Dunes camel safari.', image: 'https://images.unsplash.com/photo-1599661046827-dacff0c0f09a?auto=format&fit=crop&w=800&q=80', totalPlaces: 38 },
+  ],
+  sikkim: [
+    { id: 'dst-sk-1', name: 'Mangan', slug: 'mangan', stateName: 'Sikkim', stateSlug: 'sikkim', description: 'North Sikkim district housing sacred Gurudongmar Lake and Yumthang Valley.', image: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=800&q=80', totalPlaces: 30 },
+  ],
+  'tamil-nadu': [
+    { id: 'dst-tn-1', name: 'Madurai', slug: 'madurai', stateName: 'Tamil Nadu', stateSlug: 'tamil-nadu', description: 'Athens of the East famous for historic Meenakshi Amman Temple.', image: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=800&q=80', totalPlaces: 42 },
+  ],
+  telangana: [
+    { id: 'dst-tg-1', name: 'Hyderabad', slug: 'hyderabad', stateName: 'Telangana', stateSlug: 'telangana', description: 'City of Pearls famous for Charminar, Golconda Fort, and Dum Biryani.', image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80', totalPlaces: 48 },
+  ],
+  'uttar-pradesh': [
+    { id: 'dst-up-1', name: 'Varanasi', slug: 'varanasi', stateName: 'Uttar Pradesh', stateSlug: 'uttar-pradesh', description: 'Spiritual capital of India on holy Ganga banks with Kashi Vishwanath Dham.', image: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80', totalPlaces: 60 },
+    { id: 'dst-up-2', name: 'Ayodhya', slug: 'ayodhya', stateName: 'Uttar Pradesh', stateSlug: 'uttar-pradesh', description: 'Birthplace of Lord Ram featuring Ram Janmabhoomi Temple & Saryu ghats.', image: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80', totalPlaces: 45 },
+    { id: 'dst-up-3', name: 'Agra', slug: 'agra', stateName: 'Uttar Pradesh', stateSlug: 'uttar-pradesh', description: 'Home to Taj Mahal wonder of the world, Agra Fort, and Fatehpur Sikri.', image: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=800&q=80', totalPlaces: 35 },
+  ],
+  uttarakhand: [
+    { id: 'dst-uk-1', name: 'Rudraprayag', slug: 'rudraprayag', stateName: 'Uttarakhand', stateSlug: 'uttarakhand', description: 'Sacred confluence of Alaknanda & Mandakini rivers, gateway to Kedarnath.', image: 'https://images.unsplash.com/photo-1588668214407-6ea9a6d8c272?auto=format&fit=crop&w=800&q=80', totalPlaces: 38 },
+    { id: 'dst-uk-2', name: 'Chamoli', slug: 'chamoli', stateName: 'Uttarakhand', stateSlug: 'uttarakhand', description: 'Valley of Flowers National Park, Badrinath Temple, and Hemkund Sahib.', image: 'https://images.unsplash.com/photo-1588668214407-6ea9a6d8c272?auto=format&fit=crop&w=800&q=80', totalPlaces: 40 },
+  ],
+  'west-bengal': [
+    { id: 'dst-wb-1', name: 'Darjeeling', slug: 'darjeeling', stateName: 'West Bengal', stateSlug: 'west-bengal', description: 'Queen of the Hills featuring tea gardens, Kanchenjunga view, and UNESCO Toy Train.', image: 'https://images.unsplash.com/photo-1558431382-27e303142255?auto=format&fit=crop&w=800&q=80', totalPlaces: 44 },
+  ],
+  'jammu-and-kashmir': [
+    { id: 'dst-jk-1', name: 'Srinagar', slug: 'srinagar', stateName: 'Jammu & Kashmir (UT)', stateSlug: 'jammu-and-kashmir', description: 'Summer capital famous for Dal Lake shikaras, Mughal gardens, and Pari Mahal.', image: 'https://images.unsplash.com/photo-1566837945700-30057527ade0?auto=format&fit=crop&w=800&q=80', totalPlaces: 45 },
+  ],
+  ladakh: [
+    { id: 'dst-la-1', name: 'Leh', slug: 'leh', stateName: 'Ladakh (UT)', stateSlug: 'ladakh', description: 'High altitude desert featuring Pangong Tso Lake, Nubra Valley, and Khardung La.', image: 'https://images.unsplash.com/photo-1581793745862-99fde7fa73d2?auto=format&fit=crop&w=800&q=80', totalPlaces: 40 },
   ],
 };
 
@@ -384,7 +470,7 @@ export const samplePlaces: PlaceDetailData[] = [
     slug: 'gandikota-grand-canyon',
     type: 'HIDDEN_PLACE',
     shortDesc: 'India’s own Grand Canyon formed by Pennar river cutting through Erramala hills.',
-    fullDesc: 'Gandikota is a small village in the Kadapa district of Andhra Pradesh, known for its breathtaking gorge formed by the river Pennar cutting through the Erramala hills. Perched on top of the canyon walls, the ancient Gandikota Fort constructed in the 13th century offers panoramic sunset vistas rivaling the Arizona Grand Canyon.',
+    fullDesc: 'Gandikota is a small village in Kadapa district of Andhra Pradesh, known for its breathtaking gorge formed by the river Pennar cutting through the Erramala hills.',
     coverImage: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
     gallery: ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80'],
     stateName: 'Andhra Pradesh',
@@ -507,7 +593,7 @@ export const samplePlaces: PlaceDetailData[] = [
     coverImage: 'https://images.unsplash.com/photo-1609946782701-d85a153282b0?auto=format&fit=crop&w=1200&q=80',
     gallery: ['https://images.unsplash.com/photo-1609946782701-d85a153282b0?auto=format&fit=crop&w=800&q=80'],
     stateName: 'Bihar',
-    districtName: 'Bodh Gaya',
+    districtName: 'Gaya',
     rating: 4.9,
     bestTimeToVisit: 'November to February',
     travelBudget: 'FREE',

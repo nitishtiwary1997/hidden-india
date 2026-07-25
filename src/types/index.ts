@@ -75,3 +75,37 @@ export interface NavItem {
   badge?: string;
   icon?: string;
 }
+
+export interface TravelStorySummary {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  coverImg: string;
+  authorName: string;
+  createdAt: string;
+  published: boolean;
+}
+
+export interface AdminUserInfo {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  state?: string;
+  city?: string;
+  createdAt: string;
+}
+
+export interface CategoryStats {
+  totalStates: number;
+  totalDistricts: number;
+  totalPlaces: number;
+  totalTemples: number;
+  totalFoodSpots: number;
+  totalHeritage: number;
+  totalWaterfalls: number;
+  totalStories: number;
+  totalUsers: number;
+}
+

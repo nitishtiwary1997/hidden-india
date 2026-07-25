@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { featuredStates, featuredHiddenPlaces, sampleDistricts, samplePlaces } from '@/lib/data/mockData';
+import { featuredStates, featuredHiddenPlaces, sampleDistricts, samplePlaces, PlaceDetailData } from '@/lib/data/mockData';
 import { StateSummary, DistrictSummary, PlaceCardProps, TravelStorySummary, AdminUserInfo, CategoryStats } from '@/types';
 
 export async function getStatesData(): Promise<StateSummary[]> {
@@ -56,7 +56,6 @@ export async function getDistrictsData(): Promise<DistrictSummary[]> {
     console.error('Database connection fallback for districts:', e);
   }
 
-  // Flatten sampleDistricts mock data
   const result: DistrictSummary[] = [];
   Object.values(sampleDistricts).forEach((list) => {
     result.push(...list);
@@ -107,6 +106,96 @@ export async function getPlacesData(): Promise<PlaceCardProps[]> {
     bestTimeToVisit: p.bestTimeToVisit,
     travelBudget: p.travelBudget,
   }));
+}
+
+export async function getPlaceBySlug(slug: string): Promise<PlaceDetailData | null> {
+  try {
+    const p = await prisma.place.findUnique({
+      where: { slug },
+      include: {
+        state: true,
+        district: true,
+        templeDetails: true,
+        foodDetails: true,
+      },
+    });
+
+    if (p) {
+      return {
+        id: p.id,
+        title: p.title,
+        slug: p.slug,
+        type: p.type as any,
+        shortDesc: p.shortDesc,
+        fullDesc: p.fullDesc,
+        coverImage: p.coverImage,
+        gallery: p.gallery && p.gallery.length > 0 ? p.gallery : [p.coverImage],
+        stateName: p.state?.name || 'India',
+        districtName: p.district?.name || 'Local',
+        rating: 4.8,
+        bestTimeToVisit: p.bestTimeToVisit || 'All Year',
+        travelBudget: (p.travelBudget as any) || 'MODERATE',
+        openingTime: p.openingTime || undefined,
+        closingTime: p.closingTime || undefined,
+        entryFee: p.entryFee || undefined,
+        googleMapUrl: p.googleMapUrl || undefined,
+        howToReach: p.howToReach || undefined,
+        safetyInfo: p.safetyInfo || undefined,
+        faqs: [
+          { question: `What is the best time to visit ${p.title}?`, answer: `The best time to visit is during ${p.bestTimeToVisit || 'winter & pleasant weather months'}.` },
+          { question: `Is there any entry fee for ${p.title}?`, answer: p.entryFee ? `Entry Fee details: ${p.entryFee}` : 'Entry details can be confirmed locally at the destination.' },
+        ],
+        templeDeity: p.templeDetails?.deity || undefined,
+        templeArchitecture: p.templeDetails?.architecture || undefined,
+        darshanTiming: p.templeDetails?.darshanTiming || undefined,
+        dressCode: p.templeDetails?.dressCode || undefined,
+        foodOrigin: p.foodDetails?.originHistory || undefined,
+        ingredients: p.foodDetails?.keyIngredients || undefined,
+      };
+    }
+  } catch (e) {
+    console.error('Database query fallback for place slug:', e);
+  }
+
+  // Fallback to samplePlaces by slug or title match
+  const sample = samplePlaces.find(
+    (p) => p.slug === slug || p.slug.toLowerCase() === slug.toLowerCase()
+  );
+  if (sample) return sample;
+
+  // Generic Dynamic Generated Page for any place title/slug
+  const cleanTitle = slug
+    .split('-')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+
+  return {
+    id: `dynamic-${slug}`,
+    title: cleanTitle,
+    slug: slug,
+    type: 'HIDDEN_PLACE',
+    shortDesc: `Complete travel guide, best time to visit, timings, and route details for ${cleanTitle}.`,
+    fullDesc: `${cleanTitle} is one of India's mesmerizing local destinations. Known for its distinct culture, breathtaking surroundings, and local heritage, it attracts travelers seeking unique exploration experiences. Whether you are traveling solo, with family, or friends, this guide provides essential details for your visit.`,
+    coverImage: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+    gallery: [
+      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80',
+    ],
+    stateName: 'India',
+    districtName: 'Local Destination',
+    rating: 4.8,
+    bestTimeToVisit: 'October to March',
+    travelBudget: 'BUDGET',
+    openingTime: '06:00 AM',
+    closingTime: '06:00 PM',
+    entryFee: 'Free / Local Ticket Entry',
+    howToReach: `Connected by road and state transport buses from nearby major railway stations and airport hubs. Taxis and local autorickshaws are easily available.`,
+    safetyInfo: `Carry sufficient drinking water, wear comfortable walking shoes, and check local weather forecasts before planning your trip.`,
+    faqs: [
+      { question: `What is special about ${cleanTitle}?`, answer: `${cleanTitle} offers rich cultural significance and scenic surroundings for travelers.` },
+      { question: `How to reach ${cleanTitle}?`, answer: `Easily accessible via local cabs, buses, and nearby transport hubs.` }
+    ]
+  };
 }
 
 export async function getCommunityStoriesData(): Promise<TravelStorySummary[]> {

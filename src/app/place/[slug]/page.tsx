@@ -2,7 +2,7 @@ import React from 'react';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { samplePlaces } from '@/lib/data/mockData';
+import { getPlaceBySlug } from '@/lib/db/getData';
 import { generatePlaceMetadata } from '@/lib/seo/metaGenerator';
 import { generateTouristAttractionSchema, generateFAQSchema, generateBreadcrumbSchema } from '@/lib/seo/schemaGenerator';
 import Breadcrumbs from '@/components/common/Breadcrumbs';
@@ -27,20 +27,22 @@ import {
   Utensils
 } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
-  const place = samplePlaces.find((p) => p.slug === slug);
-  if (!place) return { title: 'Place Not Found — HiddenIndia.online' };
+  const place = await getPlaceBySlug(slug);
+  if (!place) return { title: 'Place Guide — HiddenIndia.online' };
   return generatePlaceMetadata(place);
 }
 
 export default async function PlaceDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const place = samplePlaces.find((p) => p.slug === slug);
+  const place = await getPlaceBySlug(slug);
 
   if (!place) {
     notFound();
@@ -50,8 +52,8 @@ export default async function PlaceDetailPage({ params }: PageProps) {
 
   const breadcrumbs = [
     { label: 'Explore', href: '/explore' },
-    { label: place.stateName, href: `/explore/${place.stateName.toLowerCase().replace(/\s+/g, '-')}` },
-    { label: place.districtName, href: `/explore/${place.stateName.toLowerCase().replace(/\s+/g, '-')}/${place.districtName.toLowerCase().replace(/\s+/g, '-')}` },
+    { label: place.stateName, href: `/explore` },
+    { label: place.districtName, href: `/explore` },
     { label: place.title, href: `/place/${place.slug}` },
   ];
 
@@ -62,10 +64,10 @@ export default async function PlaceDetailPage({ params }: PageProps) {
   ];
 
   return (
-    <div className="min-h-screen pb-20 relative">
+    <div className="min-h-screen pb-20 relative bg-slate-950 text-slate-100">
       <JsonLdScript data={jsonLd} />
 
-      {/* Hero Cover */}
+      {/* Hero Cover Header */}
       <div className="relative h-[480px] w-full overflow-hidden">
         <Image
           src={place.coverImage}

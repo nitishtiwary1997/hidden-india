@@ -83,6 +83,7 @@ export default function AdminPlacesManager({
     idOrSlug: string;
     name: string;
     currentImg: string;
+    stateSlug?: string;
   } | null>(null);
 
   const [imageUrlInput, setImageUrlInput] = useState('');
@@ -194,8 +195,14 @@ export default function AdminPlacesManager({
   });
 
   // Open Image Modal
-  const openImageModal = (targetType: 'STATE' | 'DISTRICT' | 'PLACE', idOrSlug: string, name: string, currentImg: string) => {
-    setActiveImageModal({ targetType, idOrSlug, name, currentImg });
+  const openImageModal = (
+    targetType: 'STATE' | 'DISTRICT' | 'PLACE',
+    idOrSlug: string,
+    name: string,
+    currentImg: string,
+    stateSlug?: string
+  ) => {
+    setActiveImageModal({ targetType, idOrSlug, name, currentImg, stateSlug });
     setImageUrlInput(currentImg);
     setUpdateSuccessMsg('');
   };
@@ -238,6 +245,7 @@ export default function AdminPlacesManager({
         body: JSON.stringify({
           targetType: activeImageModal.targetType,
           idOrSlug: activeImageModal.idOrSlug,
+          stateSlug: activeImageModal.stateSlug,
           newImageUrl: imageUrlInput.trim(),
         }),
       });
@@ -246,7 +254,13 @@ export default function AdminPlacesManager({
         if (activeImageModal.targetType === 'STATE') {
           setStatesList(prev => prev.map(s => s.slug === activeImageModal.idOrSlug ? { ...s, bannerImage: imageUrlInput.trim() } : s));
         } else if (activeImageModal.targetType === 'DISTRICT') {
-          setDistrictsList(prev => prev.map(d => d.slug === activeImageModal.idOrSlug ? { ...d, image: imageUrlInput.trim() } : d));
+          setDistrictsList(prev =>
+            prev.map(d =>
+              d.slug === activeImageModal.idOrSlug && (!activeImageModal.stateSlug || d.stateSlug === activeImageModal.stateSlug)
+                ? { ...d, image: imageUrlInput.trim() }
+                : d
+            )
+          );
         } else if (activeImageModal.targetType === 'PLACE') {
           setPlacesList(prev => prev.map(p => p.slug === activeImageModal.idOrSlug ? { ...p, coverImage: imageUrlInput.trim() } : p));
         }
@@ -406,7 +420,7 @@ export default function AdminPlacesManager({
                   <div key={d.id} className="relative group">
                     <DistrictCard district={d} />
                     <button
-                      onClick={() => openImageModal('DISTRICT', d.slug, d.name, d.image || '')}
+                      onClick={() => openImageModal('DISTRICT', d.slug, d.name, d.image || '', d.stateSlug)}
                       className="absolute top-3 right-3 px-3 py-1.5 rounded-xl bg-slate-950/90 text-cyan-300 border border-cyan-500/40 text-xs font-bold flex items-center gap-1.5 shadow-xl hover:bg-cyan-500 hover:text-slate-950 transition-all z-20"
                     >
                       <ImageIcon className="w-3.5 h-3.5" />

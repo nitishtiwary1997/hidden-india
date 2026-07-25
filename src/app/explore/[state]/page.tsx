@@ -2,8 +2,7 @@ import React from 'react';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { featuredStates, samplePlaces } from '@/lib/data/mockData';
-import { getFullDistrictsForState } from '@/lib/data/allIndianDistricts';
+import { getStatesData, getDistrictsData, getPlacesData } from '@/lib/db/getData';
 import { generateStateMetadata } from '@/lib/seo/metaGenerator';
 import { generateBreadcrumbSchema, generateFAQSchema } from '@/lib/seo/schemaGenerator';
 import Breadcrumbs from '@/components/common/Breadcrumbs';
@@ -11,7 +10,7 @@ import JsonLdScript from '@/components/common/JsonLdScript';
 import WeatherWidget from '@/components/common/WeatherWidget';
 import FaqAccordion from '@/components/common/FaqAccordion';
 import PlaceCard from '@/components/cards/PlaceCard';
-import { MapPin, Building2, Mountain, Compass, ArrowRight, ShieldCheck } from 'lucide-react';
+import { MapPin, Building2, Mountain, Compass, ArrowRight } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,23 +20,27 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps) {
   const { state: stateSlug } = await params;
-  const stateData = featuredStates.find((s) => s.slug === stateSlug);
+  const states = await getStatesData();
+  const stateData = states.find((s) => s.slug === stateSlug);
   if (!stateData) return { title: 'State Not Found — HiddenIndia.online' };
   return generateStateMetadata(stateData);
 }
 
 export default async function StateDetailPage({ params }: PageProps) {
   const { state: stateSlug } = await params;
-  const stateData = featuredStates.find((s) => s.slug === stateSlug);
+  const states = await getStatesData();
+  const stateData = states.find((s) => s.slug === stateSlug);
 
   if (!stateData) {
     notFound();
   }
 
-  // Get complete official district list for the state
-  const districts = getFullDistrictsForState(stateData.slug, stateData.name);
+  // Get complete official district list for the state from live DB data
+  const allDistricts = await getDistrictsData();
+  const districts = allDistricts.filter((d) => d.stateSlug === stateData.slug);
 
-  const statePlaces = samplePlaces.filter(
+  const allPlaces = await getPlacesData();
+  const statePlaces = allPlaces.filter(
     (p) => p.stateName.toLowerCase() === stateData.name.toLowerCase()
   );
 
@@ -53,11 +56,11 @@ export default async function StateDetailPage({ params }: PageProps) {
     },
     {
       question: `How many districts are there in ${stateData.name}?`,
-      answer: `${stateData.name} has a total of ${stateData.totalDistricts} official districts, each offering unique cultural heritage, local food, and tourist attractions.`,
+      answer: `${stateData.name} has a total of ${districts.length} official districts, each offering unique cultural heritage, local food, and tourist attractions.`,
     },
     {
       question: `What are the top tourist attractions in ${stateData.name}?`,
-      answer: `${stateData.name} features over ${stateData.totalHiddenPlaces}+ tourist places including ancient forts, serene waterfalls, hill stations, and historic temples.`,
+      answer: `${stateData.name} features over ${stateData.totalHiddenPlaces || 10}+ tourist places including ancient forts, serene waterfalls, hill stations, and historic temples.`,
     },
   ];
 
@@ -122,7 +125,7 @@ export default async function StateDetailPage({ params }: PageProps) {
               </div>
               <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
                 <span className="text-xs text-slate-400">Hidden Spots & Temples</span>
-                <div className="text-xl font-bold text-amber-400 mt-1">{stateData.totalHiddenPlaces}+</div>
+                <div className="text-xl font-bold text-amber-400 mt-1">{stateData.totalHiddenPlaces || 10}+</div>
               </div>
               <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 col-span-2 sm:col-span-1">
                 <span className="text-xs text-slate-400">Capital City</span>

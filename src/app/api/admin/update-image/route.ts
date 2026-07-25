@@ -5,7 +5,7 @@ import { featuredStates } from '@/lib/data/mockData';
 export async function POST(req: Request) {
   try {
     const data = await req.json();
-    const { targetType, idOrSlug, newImageUrl } = data;
+    const { targetType, idOrSlug, stateSlug, newImageUrl } = data;
 
     if (!idOrSlug || !newImageUrl) {
       return NextResponse.json(
@@ -29,49 +29,44 @@ export async function POST(req: Request) {
         },
       });
     } else if (targetType === 'DISTRICT') {
-      const existingDistrict = await prisma.district.findFirst({
-        where: { slug: idOrSlug },
-      });
+      const parentStateSlug = stateSlug || (idOrSlug.includes('-') ? idOrSlug.split('-')[0] : '');
+      let state = parentStateSlug ? await prisma.state.findUnique({ where: { slug: parentStateSlug } }) : null;
+      if (!state) {
+        state = await prisma.state.findFirst();
+      }
 
-      if (existingDistrict) {
-        await prisma.district.update({
-          where: { id: existingDistrict.id },
-          data: { image: newImageUrl },
-        });
-      } else {
-        const stateSlug = idOrSlug.split('-')[0];
-        let state = await prisma.state.findUnique({ where: { slug: stateSlug } });
-        if (!state) {
-          state = await prisma.state.findFirst();
-        }
-        if (state) {
-          const dName = idOrSlug
-            .split('-')
-            .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
-            .join(' ');
+      if (state) {
+        // Clean district name from slug or idOrSlug
+        const rawDistrictName = idOrSlug.startsWith(`${state.slug}-`)
+          ? idOrSlug.replace(`${state.slug}-`, '')
+          : idOrSlug;
 
-          await prisma.district.upsert({
-            where: {
-              stateId_name: {
-                stateId: state.id,
-                name: dName,
-              },
-            },
-            update: { image: newImageUrl, slug: idOrSlug },
-            create: {
-              name: dName,
-              slug: idOrSlug,
+        const cleanDistrictName = rawDistrictName
+          .split('-')
+          .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(' ');
+
+        await prisma.district.upsert({
+          where: {
+            stateId_name: {
               stateId: state.id,
-              image: newImageUrl,
-              description: `District of ${dName}`,
+              name: cleanDistrictName,
             },
-          });
-        }
+          },
+          update: { image: newImageUrl, slug: idOrSlug },
+          create: {
+            name: cleanDistrictName,
+            slug: idOrSlug,
+            stateId: state.id,
+            image: newImageUrl,
+            description: `District of ${cleanDistrictName} in ${state.name}`,
+          },
+        });
       }
     } else if (targetType === 'PLACE') {
-      const existingPlace = await prisma.place.findUnique({ where: { slug: idOrSlug } });
-      if (existingPlace) {
-        await prisma.place.update({
+      const placeCount = await prisma.place.count({ where: { slug: idOrSlug } });
+      if (placeCount > 0) {
+        await prisma.place.updateMany({
           where: { slug: idOrSlug },
           data: { coverImage: newImageUrl },
         });

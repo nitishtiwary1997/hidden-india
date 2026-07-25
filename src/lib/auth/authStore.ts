@@ -22,9 +22,14 @@ export function getStoredSession(): UserSession | null {
 export function setStoredSession(session: UserSession): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+  window.dispatchEvent(new Event('storage'));
+  window.dispatchEvent(new Event('auth-session-change'));
 }
 
 export function clearStoredSession(): void {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(STORAGE_KEY);
+  window.dispatchEvent(new Event('storage'));
+  window.dispatchEvent(new Event('auth-session-change'));
 }
+

@@ -29,7 +29,14 @@ export default function Navbar() {
   const router = useRouter();
 
   useEffect(() => {
-    setUserSession(getStoredSession());
+    const syncSession = () => setUserSession(getStoredSession());
+    syncSession();
+    window.addEventListener('storage', syncSession);
+    window.addEventListener('auth-session-change', syncSession);
+    return () => {
+      window.removeEventListener('storage', syncSession);
+      window.removeEventListener('auth-session-change', syncSession);
+    };
   }, []);
 
   const handleLogout = () => {

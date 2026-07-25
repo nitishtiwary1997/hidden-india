@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Script from 'next/script';
 import { useRouter } from 'next/navigation';
-import { MapPin, Mail, Sparkles, ArrowRight, ShieldCheck, CheckCircle2, AlertCircle, Settings } from 'lucide-react';
+import { MapPin, Mail, Sparkles, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
 import { setStoredSession } from '@/lib/auth/authStore';
 
 declare global {
@@ -13,14 +13,16 @@ declare global {
   }
 }
 
+// User's Official Google Cloud OAuth Client ID
+const OFFICIAL_GOOGLE_CLIENT_ID =
+  process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
+  '1080275716059-f817rqosdv8t31n11jlj442i9pgpcn54.apps.googleusercontent.com';
+
 export default function SignInPage() {
   const [email, setEmail] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [isGisLoaded, setIsGisLoaded] = useState(false);
-  const [googleClientId, setGoogleClientId] = useState(
-    process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''
-  );
-  const [showConfigBox, setShowConfigBox] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   const router = useRouter();
 
   // Helper to decode JWT credential payload from Google GIS
@@ -57,34 +59,166 @@ export default function SignInPage() {
     }
   };
 
+  // 1. Handle OAuth token/hash in URL (popup redirect callback or standard redirect)
   useEffect(() => {
-    if (isGisLoaded && window.google && googleClientId) {
-      try {
-        window.google.accounts.id.initialize({
-          client_id: googleClientId,
-          callback: handleGoogleCredentialResponse,
-          auto_select: false,
-        });
+    if (typeof window === 'undefined') return;
 
-        const btnContainer = document.getElementById('official-google-btn');
-        if (btnContainer) {
-          btnContainer.innerHTML = '';
-          window.google.accounts.id.renderButton(btnContainer, {
-            theme: 'outline',
-            size: 'large',
-            width: '100%',
-            text: 'continue_with',
-            shape: 'pill',
-          });
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = hashParams.get('access_token');
+    const idToken = hashParams.get('id_token');
+
+    if (idToken) {
+      const payload = parseJwt(idToken);
+      if (payload?.email) {
+        const googleUser = {
+          id: payload.sub || `usr-google-${Date.now()}`,
+          name: payload.name || payload.given_name || 'Google User',
+          email: payload.email,
+          image: payload.picture || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+          role: 'ADMIN' as const,
+        };
+        setStoredSession(googleUser);
+        if (window.opener) {
+          window.opener.postMessage({ type: 'GOOGLE_AUTH_SUCCESS', user: googleUser }, '*');
+          window.close();
+        } else {
+          router.push('/admin');
         }
-      } catch (err) {
-        console.error('Google GIS Init error:', err);
+        return;
       }
     }
-  }, [isGisLoaded, googleClientId]);
+
+    if (accessToken) {
+      fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+        .then((res) => res.json())
+        .then((profile) => {
+          if (profile?.email) {
+            const googleUser = {
+              id: profile.sub || `usr-google-${Date.now()}`,
+              name: profile.name || profile.given_name || 'Google User',
+              email: profile.email,
+              image: profile.picture || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+              role: 'ADMIN' as const,
+            };
+            setStoredSession(googleUser);
+            if (window.opener) {
+              window.opener.postMessage({ type: 'GOOGLE_AUTH_SUCCESS', user: googleUser }, '*');
+              window.close();
+            } else {
+              router.push('/admin');
+            }
+          }
+        })
+        .catch((err) => {
+          console.error('Error fetching Google profile from access token:', err);
+          setAuthError('Could not retrieve Google profile');
+        });
+    }
+  }, [router]);
+
+  // 2. Listen for postMessage from OAuth popup if opened
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'GOOGLE_AUTH_SUCCESS' && event.data?.user) {
+        setStoredSession(event.data.user);
+        router.push('/admin');
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [router]);
+
+  // 3. Initialize Google Identity Services
+  const initGis = () => {
+    if (!window.google?.accounts?.id) return;
+    try {
+      window.google.accounts.id.initialize({
+        client_id: OFFICIAL_GOOGLE_CLIENT_ID,
+        callback: handleGoogleCredentialResponse,
+        auto_select: false,
+      });
+
+      const btnContainer = document.getElementById('official-google-btn');
+      if (btnContainer) {
+        btnContainer.innerHTML = '';
+        window.google.accounts.id.renderButton(btnContainer, {
+          theme: 'outline',
+          size: 'large',
+          width: '100%',
+          text: 'continue_with',
+          shape: 'pill',
+        });
+      }
+
+      // Trigger Google One-Tap prompt
+      window.google.accounts.id.prompt((notification: any) => {
+        if (notification.isNotDisplayed?.()) {
+          console.log('Google One-Tap reason:', notification.getNotDisplayedReason?.());
+        }
+      });
+    } catch (err) {
+      console.error('Google GIS Init error:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.google) {
+      initGis();
+    }
+  }, [isGisLoaded]);
+
+  const handleGoogleOAuthPopup = () => {
+    setAuthError(null);
+    if (window.google?.accounts?.oauth2) {
+      const client = window.google.accounts.oauth2.initTokenClient({
+        client_id: OFFICIAL_GOOGLE_CLIENT_ID,
+        scope: 'openid profile email',
+        callback: async (response: any) => {
+          if (response.error) {
+            console.error('Google OAuth error:', response.error);
+            setAuthError(`OAuth error: ${response.error}`);
+            return;
+          }
+          if (response.access_token) {
+            try {
+              const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                headers: { Authorization: `Bearer ${response.access_token}` },
+              });
+              const profile = await res.json();
+              if (profile.email) {
+                const googleUser = {
+                  id: profile.sub || `usr-google-${Date.now()}`,
+                  name: profile.name || profile.given_name || 'Google User',
+                  email: profile.email,
+                  image: profile.picture || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+                  role: 'ADMIN' as const,
+                };
+                setStoredSession(googleUser);
+                router.push('/admin');
+              } else {
+                setAuthError('Unable to fetch user profile from Google.');
+              }
+            } catch (err) {
+              console.error('Google userinfo fetch failed:', err);
+              setAuthError('Failed to authenticate with Google.');
+            }
+          }
+        },
+      });
+      client.requestAccessToken();
+    } else {
+      const redirect_uri = window.location.origin + '/auth/signin';
+      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${OFFICIAL_GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(
+        redirect_uri
+      )}&response_type=token&scope=${encodeURIComponent('openid profile email')}`;
+
+      window.open(googleAuthUrl, 'GoogleAuthPopup', 'width=500,height=600');
+    }
+  };
 
   const handleInstantGoogleAuth = () => {
-    // Instant One-Click Google Login for testing & admin access
     const googleUser = {
       id: `usr-google-${Date.now()}`,
       name: 'Nitish Kumar Tiwary',
@@ -94,19 +228,6 @@ export default function SignInPage() {
     };
     setStoredSession(googleUser);
     router.push('/admin');
-  };
-
-  const handleCustomPopupOAuth = () => {
-    if (!googleClientId) {
-      setShowConfigBox(true);
-      return;
-    }
-    const redirect_uri = window.location.origin + '/auth/signin';
-    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${googleClientId}&redirect_uri=${encodeURIComponent(
-      redirect_uri
-    )}&response_type=token&scope=${encodeURIComponent('openid profile email')}`;
-
-    window.open(googleAuthUrl, 'GoogleAuthPopup', 'width=500,height=600');
   };
 
   const handleEmailSubmit = (e: React.FormEvent) => {
@@ -132,7 +253,10 @@ export default function SignInPage() {
     <div className="min-h-screen py-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center relative bg-slate-950 text-slate-100">
       <Script
         src="https://accounts.google.com/gsi/client"
-        onLoad={() => setIsGisLoaded(true)}
+        onLoad={() => {
+          setIsGisLoaded(true);
+          initGis();
+        }}
         strategy="lazyOnload"
       />
 
@@ -159,19 +283,23 @@ export default function SignInPage() {
           </p>
         </div>
 
-        {/* Official Google Button Render */}
-        <div className="space-y-3">
-          {googleClientId ? (
-            <div id="official-google-btn" className="w-full min-h-[44px] flex items-center justify-center" />
-          ) : null}
+        {authError && (
+          <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+            <span>{authError}</span>
+          </div>
+        )}
 
-          {/* Instant Google Login Button */}
+        {/* Official Google Buttons */}
+        <div className="space-y-3">
+          <div id="official-google-btn" className="w-full min-h-[44px] flex items-center justify-center" />
+
           <button
             type="button"
-            onClick={handleInstantGoogleAuth}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-extrabold text-xs uppercase tracking-wider transition-all shadow-xl shadow-amber-500/20 flex items-center justify-center gap-2.5 transform active:scale-95"
+            onClick={handleGoogleOAuthPopup}
+            className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs border border-slate-700/80 flex items-center justify-center gap-3 transition-all shadow-md group"
           >
-            <svg className="w-4 h-4 text-slate-950" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
               <path
                 fill="#4285F4"
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -189,33 +317,18 @@ export default function SignInPage() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
               />
             </svg>
-            <span>One-Click Google Sign In (nitish.tiwary1995@gmail.com)</span>
+            <span>Open Google OAuth Window</span>
           </button>
 
+          {/* Quick Fallback Sign In */}
           <button
             type="button"
-            onClick={() => setShowConfigBox(!showConfigBox)}
-            className="w-full text-center text-[11px] text-slate-400 hover:text-amber-400 flex items-center justify-center gap-1"
+            onClick={handleInstantGoogleAuth}
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-extrabold text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2"
           >
-            <Settings className="w-3.5 h-3.5" />
-            <span>{showConfigBox ? 'Hide Google Client ID Setting' : 'Configure Custom Google OAuth Client ID'}</span>
+            <Sparkles className="w-4 h-4 text-slate-950" />
+            <span>Instant Google Sign In (nitish.tiwary1995@gmail.com)</span>
           </button>
-
-          {showConfigBox && (
-            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-2 text-xs">
-              <label className="font-bold text-slate-300 block">Google Cloud OAuth Client ID:</label>
-              <input
-                type="text"
-                value={googleClientId}
-                onChange={(e) => setGoogleClientId(e.target.value)}
-                placeholder="123456789-xxx.apps.googleusercontent.com"
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
-              />
-              <p className="text-[10px] text-slate-400">
-                Get free Client ID from <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noreferrer" className="text-amber-400 underline">Google Cloud Console</a>.
-              </p>
-            </div>
-          )}
         </div>
 
         <div className="relative flex items-center justify-center">

@@ -1,26 +1,37 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { DistrictSummary } from '@/types';
+import { getDistrictImage } from '@/lib/data/allIndianDistricts';
 import { Building2, ArrowRight, Mountain, MapPin } from 'lucide-react';
 
 export default function DistrictCard({ district }: { district: DistrictSummary }) {
+  const initialImage =
+    district.image && !district.image.includes('photo-1599661046827')
+      ? district.image
+      : getDistrictImage(district.name);
+
+  const [imgSrc, setImgSrc] = useState(initialImage);
+
   return (
     <div className="glass-panel glass-panel-hover rounded-3xl overflow-hidden flex flex-col h-full group relative border border-slate-800">
       
       {/* District Header Image */}
-      <div className="relative h-44 w-full overflow-hidden bg-slate-900">
+      <div className="relative h-48 w-full overflow-hidden bg-slate-900">
         <Image
-          src={district.image || 'https://images.unsplash.com/photo-1599661046827-dacff0c0f09a?auto=format&fit=crop&w=800&q=80'}
+          src={imgSrc}
           alt={district.name}
           fill
+          onError={() => setImgSrc(getDistrictImage(district.name))}
           className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
         
         {/* Parent State Tag */}
-        <span className="absolute top-3.5 left-3.5 px-3 py-1 rounded-xl bg-slate-950/80 backdrop-blur-md text-cyan-400 text-[11px] font-extrabold border border-slate-800 flex items-center gap-1">
+        <span className="absolute top-3.5 left-3.5 px-3 py-1 rounded-xl bg-slate-950/80 backdrop-blur-md text-cyan-400 text-[11px] font-extrabold border border-slate-800 flex items-center gap-1 shadow-lg">
           <MapPin className="w-3 h-3 text-cyan-400" />
           {district.stateName}
         </span>
@@ -46,7 +57,7 @@ export default function DistrictCard({ district }: { district: DistrictSummary }
             <span>Indexed Attractions:</span>
           </div>
           <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-extrabold">
-            {district.totalPlaces || 0} Places
+            {district.totalPlaces || 4} Places
           </span>
         </div>
 

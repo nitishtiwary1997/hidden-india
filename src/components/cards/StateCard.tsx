@@ -1,19 +1,26 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { StateSummary } from '@/types';
 import { MapPin, ArrowRight, Compass, Mountain, Building2 } from 'lucide-react';
 
+const FALLBACK_STATE_IMG = 'https://images.unsplash.com/photo-1622308644420-a7d25e0b6b23?auto=format&fit=crop&w=1200&q=80';
+
 export default function StateCard({ state }: { state: StateSummary }) {
+  const [imgSrc, setImgSrc] = useState(state.bannerImage || FALLBACK_STATE_IMG);
+
   return (
     <div className="glass-panel glass-panel-hover rounded-3xl overflow-hidden flex flex-col h-full group relative">
       
       {/* Banner Image */}
-      <div className="relative h-52 w-full overflow-hidden">
+      <div className="relative h-52 w-full overflow-hidden bg-slate-900">
         <Image
-          src={state.bannerImage}
+          src={imgSrc}
           alt={state.name}
           fill
+          onError={() => setImgSrc(FALLBACK_STATE_IMG)}
           className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
         />

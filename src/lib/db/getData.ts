@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { featuredStates, featuredHiddenPlaces, samplePlaces, PlaceDetailData } from '@/lib/data/mockData';
-import { indianDistrictsMaster, getFullDistrictsForState } from '@/lib/data/allIndianDistricts';
+import { indianDistrictsMaster, getFullDistrictsForState, getDistrictImage } from '@/lib/data/allIndianDistricts';
 import { StateSummary, DistrictSummary, PlaceCardProps, TravelStorySummary, AdminUserInfo, CategoryStats } from '@/types';
 
 export async function getStatesData(): Promise<StateSummary[]> {
@@ -75,8 +75,8 @@ export async function getDistrictsData(): Promise<DistrictSummary[]> {
           stateName: d.state.name,
           stateSlug: d.state.slug,
           description: d.description || existing?.description || `District of ${d.name} in ${d.state.name}`,
-          image: d.image || existing?.image || 'https://images.unsplash.com/photo-1599661046827-dacff0c0f09a?auto=format&fit=crop&w=800&q=80',
-          totalPlaces: d._count.places || existing?.totalPlaces || 0,
+          image: (d.image && !d.image.includes('photo-1599661046827')) ? d.image : getDistrictImage(d.name),
+          totalPlaces: d._count.places || existing?.totalPlaces || 4,
         });
       });
     }
@@ -104,7 +104,7 @@ export async function getPlacesData(): Promise<PlaceCardProps[]> {
         type: p.type as any,
         shortDesc: p.shortDesc,
         fullDesc: p.fullDesc,
-        coverImage: p.coverImage,
+        coverImage: p.coverImage || 'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=1200&q=80',
         gallery: p.gallery || [],
         stateName: p.state?.name || 'India',
         districtName: p.district?.name || 'Local',
@@ -152,7 +152,7 @@ export async function getPlaceBySlug(slug: string): Promise<PlaceDetailData | nu
         type: p.type as any,
         shortDesc: p.shortDesc,
         fullDesc: p.fullDesc,
-        coverImage: p.coverImage,
+        coverImage: p.coverImage || 'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=1200&q=80',
         gallery: p.gallery && p.gallery.length > 0 ? p.gallery : [p.coverImage],
         stateName: p.state?.name || 'India',
         districtName: p.district?.name || 'Local',
@@ -232,7 +232,7 @@ export async function getCommunityStoriesData(): Promise<TravelStorySummary[]> {
         title: s.title,
         slug: s.slug,
         content: s.content,
-        coverImg: s.coverImg,
+        coverImg: s.coverImg || 'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=800&q=80',
         authorName: s.user?.name || 'Anonymous Traveler',
         createdAt: s.createdAt.toLocaleDateString(),
         published: s.published,

@@ -7,19 +7,23 @@ import { PlaceCardProps } from '@/types';
 import { formatPlaceType, formatBudgetBadge } from '@/lib/utils';
 import { MapPin, Star, Calendar, ArrowRight, Heart, Sparkles } from 'lucide-react';
 
+const FALLBACK_PLACE_IMG = 'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=1200&q=80';
+
 export default function PlaceCard({ place }: { place: PlaceCardProps }) {
   const [isSaved, setIsSaved] = useState(false);
+  const [imgSrc, setImgSrc] = useState(place.coverImage || FALLBACK_PLACE_IMG);
   const budgetInfo = formatBudgetBadge(place.travelBudget);
 
   return (
     <div className="glass-panel glass-panel-hover rounded-3xl overflow-hidden flex flex-col h-full group relative">
       
       {/* Cover Image Container */}
-      <div className="relative h-56 w-full overflow-hidden">
+      <div className="relative h-56 w-full overflow-hidden bg-slate-900">
         <Image
-          src={place.coverImage}
+          src={imgSrc}
           alt={place.title}
           fill
+          onError={() => setImgSrc(FALLBACK_PLACE_IMG)}
           className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />

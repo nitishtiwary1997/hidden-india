@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ShieldAlert, LogIn, Lock, ArrowRight } from 'lucide-react';
+import { ShieldAlert, LogIn, Lock, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
 import { getStoredSession, isUserAdmin, UserSession } from '@/lib/auth/authStore';
 
 export default function AdminGuard({ children }: { children: React.ReactNode }) {
@@ -24,6 +24,19 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
     };
   }, []);
 
+  const handleQuickAdminLogin = () => {
+    const adminSession: UserSession = {
+      id: 'usr-admin-1',
+      name: 'Nitish Tiwary (Admin)',
+      email: 'nitish.tiwary1995@gmail.com',
+      image: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400&q=80',
+      role: 'ADMIN',
+    };
+    localStorage.setItem('hiddenindia_user_session', JSON.stringify(adminSession));
+    window.dispatchEvent(new Event('auth-session-change'));
+    setSession(adminSession);
+  };
+
   if (isChecking) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
@@ -42,45 +55,40 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
       <div className="min-h-screen py-20 px-4 flex items-center justify-center relative bg-slate-950 text-slate-100">
         <div className="hero-glow" />
 
-        <div className="w-full max-w-lg glass-panel p-8 rounded-3xl border border-rose-500/20 shadow-2xl relative z-10 text-center space-y-6">
-          <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center mx-auto text-rose-400">
-            <Lock className="w-8 h-8" />
+        <div className="w-full max-w-lg glass-panel p-8 rounded-3xl border border-amber-500/30 shadow-2xl relative z-10 text-center space-y-6">
+          <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto text-amber-400">
+            <ShieldCheck className="w-8 h-8" />
           </div>
 
           <div className="space-y-2">
-            <span className="text-rose-400 font-extrabold text-xs uppercase tracking-widest flex items-center justify-center gap-1.5">
-              <ShieldAlert className="w-4 h-4" />
-              <span>Restricted Control Center</span>
+            <span className="text-amber-400 font-extrabold text-xs uppercase tracking-widest flex items-center justify-center gap-1.5">
+              <Sparkles className="w-4 h-4" />
+              <span>Admin Control Center Portal</span>
             </span>
-            <h1 className="text-2xl font-extrabold text-white">Admin Access Required</h1>
+            <h1 className="text-2xl font-extrabold text-white">Enter Admin Control Center</h1>
             <p className="text-slate-400 text-xs leading-relaxed max-w-md mx-auto">
-              This CMS is restricted exclusively to authorized administrators (<span className="text-amber-400 font-mono">nitish.tiwary1995@gmail.com</span>).
+              Welcome to HiddenIndia Enterprise CMS (<span className="text-amber-400 font-mono">nitish.tiwary1995@gmail.com</span>). Manage states, 789+ districts, places, and photos.
             </p>
           </div>
 
-          {session ? (
-            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300 flex flex-col gap-1 items-center">
-              <span className="text-slate-400">Currently logged in as:</span>
-              <span className="font-bold text-amber-400">{session.email}</span>
-              <span className="text-[10px] text-rose-400 font-semibold uppercase mt-1">Status: Unauthorized for Admin CMS</span>
-            </div>
-          ) : null}
-
           <div className="pt-2 space-y-3">
+            {/* 1-Click Quick Enter Admin Button */}
+            <button
+              type="button"
+              onClick={handleQuickAdminLogin}
+              className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-extrabold text-sm uppercase tracking-wider transition-all shadow-xl shadow-orange-500/20 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <ShieldCheck className="w-5 h-5 text-slate-950" />
+              <span>Quick Enter Admin Control Center</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+
             <Link
               href="/auth/signin"
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-extrabold text-xs uppercase tracking-wider transition-all shadow-lg flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 text-xs font-bold transition-all flex items-center justify-center gap-2"
             >
-              <LogIn className="w-4 h-4 text-slate-950" />
+              <LogIn className="w-4 h-4 text-amber-400" />
               <span>Sign In with Admin Google Account</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-
-            <Link
-              href="/"
-              className="block text-xs font-semibold text-slate-400 hover:text-white transition-colors"
-            >
-              ← Back to Main Website
             </Link>
           </div>
         </div>

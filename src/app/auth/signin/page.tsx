@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Script from 'next/script';
 import { useRouter } from 'next/navigation';
 import { MapPin, Mail, Sparkles, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
-import { setStoredSession } from '@/lib/auth/authStore';
+import { setStoredSession, isAdminEmail } from '@/lib/auth/authStore';
 
 declare global {
   interface Window {
@@ -45,16 +45,17 @@ export default function SignInPage() {
   const handleGoogleCredentialResponse = (response: any) => {
     if (response && response.credential) {
       const payload = parseJwt(response.credential);
-      if (payload) {
+      if (payload?.email) {
+        const isAdmin = isAdminEmail(payload.email);
         const googleUser = {
           id: payload.sub || `usr-google-${Date.now()}`,
           name: payload.name || payload.given_name || 'Google User',
           email: payload.email,
           image: payload.picture || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
-          role: 'ADMIN' as const,
+          role: isAdmin ? ('ADMIN' as const) : ('USER' as const),
         };
         setStoredSession(googleUser);
-        router.push('/admin');
+        router.push(isAdmin ? '/admin' : '/');
       }
     }
   };
@@ -70,19 +71,20 @@ export default function SignInPage() {
     if (idToken) {
       const payload = parseJwt(idToken);
       if (payload?.email) {
+        const isAdmin = isAdminEmail(payload.email);
         const googleUser = {
           id: payload.sub || `usr-google-${Date.now()}`,
           name: payload.name || payload.given_name || 'Google User',
           email: payload.email,
           image: payload.picture || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
-          role: 'ADMIN' as const,
+          role: isAdmin ? ('ADMIN' as const) : ('USER' as const),
         };
         setStoredSession(googleUser);
         if (window.opener) {
           window.opener.postMessage({ type: 'GOOGLE_AUTH_SUCCESS', user: googleUser }, '*');
           window.close();
         } else {
-          router.push('/admin');
+          router.push(isAdmin ? '/admin' : '/');
         }
         return;
       }
@@ -95,19 +97,20 @@ export default function SignInPage() {
         .then((res) => res.json())
         .then((profile) => {
           if (profile?.email) {
+            const isAdmin = isAdminEmail(profile.email);
             const googleUser = {
               id: profile.sub || `usr-google-${Date.now()}`,
               name: profile.name || profile.given_name || 'Google User',
               email: profile.email,
               image: profile.picture || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
-              role: 'ADMIN' as const,
+              role: isAdmin ? ('ADMIN' as const) : ('USER' as const),
             };
             setStoredSession(googleUser);
             if (window.opener) {
               window.opener.postMessage({ type: 'GOOGLE_AUTH_SUCCESS', user: googleUser }, '*');
               window.close();
             } else {
-              router.push('/admin');
+              router.push(isAdmin ? '/admin' : '/');
             }
           }
         })
@@ -123,7 +126,7 @@ export default function SignInPage() {
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === 'GOOGLE_AUTH_SUCCESS' && event.data?.user) {
         setStoredSession(event.data.user);
-        router.push('/admin');
+        router.push(isAdminEmail(event.data.user.email) ? '/admin' : '/');
       }
     };
     window.addEventListener('message', handleMessage);
@@ -188,15 +191,16 @@ export default function SignInPage() {
               });
               const profile = await res.json();
               if (profile.email) {
+                const isAdmin = isAdminEmail(profile.email);
                 const googleUser = {
                   id: profile.sub || `usr-google-${Date.now()}`,
                   name: profile.name || profile.given_name || 'Google User',
                   email: profile.email,
                   image: profile.picture || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
-                  role: 'ADMIN' as const,
+                  role: isAdmin ? ('ADMIN' as const) : ('USER' as const),
                 };
                 setStoredSession(googleUser);
-                router.push('/admin');
+                router.push(isAdmin ? '/admin' : '/');
               } else {
                 setAuthError('Unable to fetch user profile from Google.');
               }
@@ -234,15 +238,16 @@ export default function SignInPage() {
     e.preventDefault();
     if (email) {
       if (otpSent) {
+        const isAdmin = isAdminEmail(email);
         const user = {
           id: `usr-email-${Date.now()}`,
           name: email.split('@')[0],
           email: email,
           image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
-          role: 'USER' as const,
+          role: isAdmin ? ('ADMIN' as const) : ('USER' as const),
         };
         setStoredSession(user);
-        router.push('/');
+        router.push(isAdmin ? '/admin' : '/');
       } else {
         setOtpSent(true);
       }

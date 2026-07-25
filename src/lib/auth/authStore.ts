@@ -9,6 +9,25 @@ export interface UserSession {
 
 const STORAGE_KEY = 'hiddenindia_user_session';
 
+// List of authorized Admin Email IDs
+export const ADMIN_EMAILS = [
+  'nitish.tiwary1995@gmail.com',
+  'nitish.tiwary1997@gmail.com',
+  'nitishtiwary1997@gmail.com',
+  ...(process.env.NEXT_PUBLIC_ADMIN_EMAIL ? [process.env.NEXT_PUBLIC_ADMIN_EMAIL] : []),
+];
+
+export function isAdminEmail(email?: string | null): boolean {
+  if (!email) return false;
+  const normalized = email.trim().toLowerCase();
+  return ADMIN_EMAILS.some((adminEmail) => adminEmail.trim().toLowerCase() === normalized);
+}
+
+export function isUserAdmin(session: UserSession | null): boolean {
+  if (!session) return false;
+  return session.role === 'ADMIN' && isAdminEmail(session.email);
+}
+
 export function getStoredSession(): UserSession | null {
   if (typeof window === 'undefined') return null;
   try {
@@ -32,4 +51,3 @@ export function clearStoredSession(): void {
   window.dispatchEvent(new Event('storage'));
   window.dispatchEvent(new Event('auth-session-change'));
 }
-
